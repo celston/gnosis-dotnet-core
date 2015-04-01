@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{773729DF-EB98-4D4C-AE1F-25FB82C3A9A2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Gnosis.Entities.Examples</RootNamespace>
+    <AssemblyName>Gnosis.Entities.Examples</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Fruits\Apples\Apple.cs" />
+    <Compile Include="Fruits\Apples\AppleReference.cs" />
+    <Compile Include="Fruits\Apples\FujiAppleReference.cs" />
+    <Compile Include="Fruits\Apples\GalaApple.cs" />
+    <Compile Include="Fruits\Apples\GalaAppleReference.cs" />
+    <Compile Include="Fruits\Apples\HoneycrispAppleReference.cs" />
+    <Compile Include="Fruits\Apples\IApple.cs" />
+    <Compile Include="Fruits\Bananas\Banana.cs" />
+    <Compile Include="Fruits\Bananas\BananaReference.cs" />
+    <Compile Include="Fruits\Bananas\IBanana.cs" />
+    <Compile Include="Fruits\Bananas\IBananaCreateRequest.cs" />
+    <Compile Include="Fruits\Baskets\IBasketByObjects.cs" />
+    <Compile Include="Fruits\Baskets\IBasketByReferences.cs" />
+    <Compile Include="Fruits\Constants.cs" />
+    <Compile Include="Fruits\Fruit.cs" />
+    <Compile Include="Fruits\FruitManager.cs" />
+    <Compile Include="Fruits\FruitReference.cs" />
+    <Compile Include="Fruits\Apples\FujiApple.cs" />
+    <Compile Include="Fruits\Apples\HoneycrispApple.cs" />
+    <Compile Include="Fruits\Apples\IAppleCreateRequest.cs" />
+    <Compile Include="Fruits\Baskets\IBasketByIds.cs" />
+    <Compile Include="Fruits\Baskets\IBasketCreateRequest.cs" />
+    <Compile Include="Fruits\IFruit.cs" />
+    <Compile Include="Fruits\IFruitCreateRequest.cs" />
+    <Compile Include="Fruits\IFruitDataManager.cs" />
+    <Compile Include="Fruits\Oranges\BloodOrange.cs" />
+    <Compile Include="Fruits\Oranges\BloodOrangeReference.cs" />
+    <Compile Include="Fruits\Oranges\IOrange.cs" />
+    <Compile Include="Fruits\Oranges\IOrangeCreateRequest.cs" />
+    <Compile Include="Fruits\Oranges\NavelOrange.cs" />
+    <Compile Include="Fruits\Oranges\NavelOrangeReference.cs" />
+    <Compile Include="Fruits\Oranges\Orange.cs" />
+    <Compile Include="Fruits\Oranges\OrangeReference.cs" />
+    <Compile Include="Fruits\Oranges\ValenciaOrange.cs" />
+    <Compile Include="Fruits\Oranges\ValenciaOrangeReference.cs" />
+    <Compile Include="People\DirectQueryDbPeopleDataManager.cs" />
+    <Compile Include="People\IEmployee.cs" />
+    <Compile Include="People\IEmployeeUpdateRequest.cs" />
+    <Compile Include="People\IParent.cs" />
+    <Compile Include="People\IParentUpdateRequest.cs" />
+    <Compile Include="People\IPeopleDataManager.cs" />
+    <Compile Include="People\IPerson.cs" />
+    <Compile Include="People\IPersonCreateRequest.cs" />
+    <Compile Include="People\ISocialNetworkProfile.cs" />
+    <Compile Include="People\ISocialNetworkProfileUpdateRequest.cs" />
+    <Compile Include="People\PeopleManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gnosis.Data\Gnosis.Data.csproj">
+      <Project>{41fb9458-9a29-4edd-911b-0fb523f3c116}</Project>
+      <Name>Gnosis.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Entities\Gnosis.Entities.csproj">
+      <Project>{bb9b1872-451b-4cde-9498-cfb8fdbeb2f8}</Project>
+      <Name>Gnosis.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis\Gnosis.csproj">
+      <Project>{05a6cebb-860c-4ffa-8ae1-99fff5f1792c}</Project>
+      <Name>Gnosis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
