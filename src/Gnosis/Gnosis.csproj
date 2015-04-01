@@ -44,6 +44,7 @@
     <Compile Include="Configuration.cs" />
     <Compile Include="DateTimeUtility.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Manager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

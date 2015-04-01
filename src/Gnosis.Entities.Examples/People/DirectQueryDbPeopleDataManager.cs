@@ -38,10 +38,14 @@ namespace Gnosis.Entities.Examples.People
 
                     UpdateEntity(conn, trans, motherId, motherRevision, null, childCreateRequest.Created);
                     InsertEntityRevision(conn, trans, motherId, motherRevision, childCreateRequest.Author, null, childCreateRequest.Created);
+                    AppendFieldValue(conn, trans, "FieldUniqueidentifier", motherRevision, "Children", childCreateRequest.Id, System.Data.DbType.Guid);
                     UpdateEntity(conn, trans, fatherId, fatherRevision, null, childCreateRequest.Created);
                     InsertEntityRevision(conn, trans, fatherId, fatherRevision, childCreateRequest.Author, null, childCreateRequest.Created);
+                    AppendFieldValue(conn, trans, "FieldUniqueidentifier", fatherRevision, "Children", childCreateRequest.Id, System.Data.DbType.Guid);
 
                     CreateEntityHelper(conn, trans, PeopleManager.TYPE_PERSON, childCreateRequest.Id, childRevision, childCreateRequest.Author, childLabel, childCreateRequest.Created, false, childFieldValues);
+
+                    trans.Commit();
                 }
             }
         }

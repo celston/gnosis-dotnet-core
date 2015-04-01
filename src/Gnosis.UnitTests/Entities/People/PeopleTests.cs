@@ -118,7 +118,10 @@ namespace Gnosis.UnitTests.Entities.People
         [Test]
         public void CreatePerson_Myself()
         {
-            CreateMyself();
+            Guid id = CreateMyself();
+
+            Person p = manager.LoadPerson<Person>(id);
+            Assert.AreEqual("Chris", p.FirstName);
 
             CreatePerson_Myself_Asserts();
         }
@@ -160,6 +163,22 @@ namespace Gnosis.UnitTests.Entities.People
             manager.UpdateSocialNetworkProfile(socialNetworkProfileUpdateRequest);
             
             CreatePerson_UpdateEmployee_UpdateSocialNetworkProfile_Asserts();
+        }
+
+        [Test]
+        public void CreateFamily()
+        {
+            Guid mother = CreatePerson("Amy", "Elston", new DateTime(1986, 6, 6));
+            Guid father = CreateMyself();
+
+            PersonCreateRequest childCreateRequest = new PersonCreateRequest()
+            {
+                FirstName = "Liam",
+                LastName = "Elston",
+                BirthDate = new DateTime(2014, 5, 17)
+            };
+
+            manager.AddChild(mother, father, childCreateRequest);
         }
 
         protected virtual void CreatePerson_Myself_Asserts()

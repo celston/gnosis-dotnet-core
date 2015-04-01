@@ -43,9 +43,10 @@ namespace Gnosis.Entities
                 using (DbTransaction trans = conn.BeginTransaction())
                 {
                     string sql = new SelectCountQueryBuilder()
-                    .AddTable(prefix, "vEntity")
-                    .AddWhere("vEntity.type = @type")
-                    .AddWhere("vEntity.id = @id")
+                    .AddTable(prefix, "Entity")
+                    .AddWhere("Entity.type = @type")
+                    .AddWhere("Entity.status = 1")
+                    .AddWhere("Entity.id = @id")
                     .ToString();
 
                     using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
@@ -146,9 +147,9 @@ namespace Gnosis.Entities
                     using (DbTransaction trans = conn.BeginTransaction())
                     {
                         string sql = new SelectQueryBuilder()
-                        .AddColumn("vEntity.type")
-                        .AddTable(prefix, "vEntity")
-                        .AddInWhere("vEntity", "id", ids.Count())
+                        .AddColumn("Entity", "type")
+                        .AddTable(prefix, "Entity")
+                        .AddInWhere("Entity", "id", ids.Count())
                         .ToString();
 
                         using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
@@ -208,7 +209,20 @@ namespace Gnosis.Entities
             string fieldNames = string.Join(", ", fieldValues.Select(x => string.Format("'{0}'", x.Field.Name)));
             foreach (string table in new string[] { "FieldBit", "FieldInteger", "FieldDecimal", "FieldText", "FieldDateTime" })
             {
-                string sql = string.Format("INSERT INTO {0} (id, revision, fieldName, delta, value) SELECT vEntity.id, @revision, {0}.fieldName, {0}.delta, {0}.value FROM vEntity JOIN {0} ON vEntity.revision = {0}.revision WHERE vEntity.id = @id AND {0}.fieldName NOT IN ({1})", table, fieldNames);
+                string selectSql = new SelectQueryBuilder()
+                    .AddColumn("Entity", "id")
+                    .AddDynamicColumn("@revision", "revision")
+                    .AddColumn("Field", "fieldName")
+                    .AddColumn("Field", "delta")
+                    .AddColumn("Field", "value")
+                    .AddTable(prefix, "Entity")
+                    .AddJoin(prefix, table, "Field", string.Format("Entity.revision = Field.revision", table))
+                    .AddWhere("Entity.id = @id")
+                    .AddConditionalWhere(fieldNames.Count() > 0, string.Format("Field.fieldName NOT IN ({0})", fieldNames))
+                    .ToString();
+
+                string sql = string.Format("INSERT INTO {0}{1} (id, revision, fieldName, delta, value) {2}", prefix, table, selectSql);
+                Debug.Print(sql);
                 using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
                 {
                     AddParameter(cmd, "@id", id);
@@ -222,7 +236,7 @@ namespace Gnosis.Entities
         protected void UpdateEntity(DbConnection conn, DbTransaction trans, Guid id, Guid revision, string label, DateTime updated)
         {
             UpdateQueryBuilder qb = new UpdateQueryBuilder()
-                .SetTable("Entity")
+                .SetTable(prefix, "Entity")
                 .AddSets(new string[] { "revision", "updated" })
                 .AddWhere("id = @id");
 
@@ -251,6 +265,7 @@ namespace Gnosis.Entities
                     .SetTable(prefix, "EntityRevision")
                     .AddColumns(new string[] { "id", "revision", "author", "label", "created" })
                     .ToString();
+            Debug.Print(sql);
 
             using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
             {
@@ -264,16 +279,13 @@ namespace Gnosis.Entities
             }
         }
 
-        #endregion
-
-        #region Private Methods
-
-        private DbCommand SelectEntity(DbConnection conn, DbTransaction trans, Guid id, string type)
+        protected DbCommand SelectEntity(DbConnection conn, DbTransaction trans, Guid id, string type)
         {
             string sql = new SelectQueryBuilder()
-                .AddTable(prefix, "vEntity")
-                .AddColumn("*")
+                .AddTable(prefix, "Entity")
+                .AddAllTableColumns("Entity")
                 .AddWhere("id = @id")
+                .AddWhere("status = 1")
                 .AddWhere("type = @type")
                 .ToString();
 
@@ -284,7 +296,7 @@ namespace Gnosis.Entities
             return cmd;
         }
 
-        private IEnumerable<EntityFieldValue> LoadEntityFieldValues(DbConnection conn, DbTransaction trans, Guid revision, IEnumerable<EntityField> fields)
+        protected IEnumerable<EntityFieldValue> LoadEntityFieldValues(DbConnection conn, DbTransaction trans, Guid revision, IEnumerable<EntityField> fields)
         {
             List<EntityFieldValue> result = new List<EntityFieldValue>();
 
@@ -295,9 +307,9 @@ namespace Gnosis.Entities
             {
                 string fieldNames = string.Join(", ", textFields.Select(x => string.Format("'{0}'", x.Name)));
                 string sql = new SelectQueryBuilder()
-                    .AddColumn("FieldText.fieldName")
-                    .AddColumn("FieldText.delta")
-                    .AddColumn("DataText.data value")
+                    .AddColumn("FieldText", "fieldName")
+                    .AddColumn("FieldText", "delta")
+                    .AddColumn("DataText", "data", "value")
                     .AddTable(prefix, "FieldText")
                     .AddJoin(prefix, "DataText", "FieldText.value = DataText.md5")
                     .AddWhere("FieldText.revision = @revision")
@@ -312,9 +324,9 @@ namespace Gnosis.Entities
             {
                 string fieldNames = string.Join(", ", dateTimeFields.Select(x => string.Format("'{0}'", x.Name)));
                 string sql = new SelectQueryBuilder()
-                    .AddColumn("FieldDateTime.fieldName")
-                    .AddColumn("FieldDateTime.delta")
-                    .AddColumn("FieldDateTime.value")
+                    .AddColumn("FieldDateTime", "fieldName")
+                    .AddColumn("FieldDateTime", "delta")
+                    .AddColumn("FieldDateTime", "value")
                     .AddTable(prefix, "FieldDateTime")
                     .AddWhere("FieldDateTime.revision = @revision")
                     .AddWhere(string.Format("FieldDateTime.fieldName IN ({0})", fieldNames))
@@ -344,7 +356,7 @@ namespace Gnosis.Entities
             return result;
         }
 
-        private void ProcessLoadEntityFields(DbConnection conn, DbTransaction trans, string sql, Guid revision, Dictionary<string, Dictionary<int, object>> temp)
+        protected void ProcessLoadEntityFields(DbConnection conn, DbTransaction trans, string sql, Guid revision, Dictionary<string, Dictionary<int, object>> temp)
         {
             using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
             {
@@ -366,9 +378,9 @@ namespace Gnosis.Entities
                     }
                 }
             }
-        }   
+        }
 
-        private void SaveFields(DbConnection conn, DbTransaction trans, Guid id, Guid revision, IEnumerable<EntityFieldValue> fieldValues)
+        protected void SaveFields(DbConnection conn, DbTransaction trans, Guid id, Guid revision, IEnumerable<EntityFieldValue> fieldValues)
         {
             using (MD5 md5 = MD5.Create())
             {
@@ -423,7 +435,7 @@ namespace Gnosis.Entities
             }
         }
 
-        private int SelectCountDataText(DbConnection conn, DbTransaction trans, Guid md5)
+        protected int SelectCountDataText(DbConnection conn, DbTransaction trans, Guid md5)
         {
             string sql = new SelectCountQueryBuilder()
                 .AddTable(prefix, "DataText")
@@ -438,10 +450,10 @@ namespace Gnosis.Entities
             }
         }
 
-        private void InsertDataText(DbConnection conn, DbTransaction trans, Guid md5, string data)
+        protected void InsertDataText(DbConnection conn, DbTransaction trans, Guid md5, string data)
         {
             string sql = new InsertQueryBuilder()
-                                        .SetTable("DataText")
+                                        .SetTable(prefix, "DataText")
                                         .AddColumns(new string[] { "md5", "data" })
                                         .ToString();
 
@@ -454,10 +466,10 @@ namespace Gnosis.Entities
             }
         }
 
-        private void InsertField(DbConnection conn, DbTransaction trans, string table, Guid id, Guid revision, string fieldName, object value, DbType dbType)
+        protected void InsertField(DbConnection conn, DbTransaction trans, string table, Guid id, Guid revision, string fieldName, object value, DbType dbType)
         {
             string sql = new InsertQueryBuilder()
-                                    .SetTable(table)
+                                    .SetTable(prefix, table)
                                     .AddColumns(new string[] { "id", "revision", "fieldName", "delta", "value" })
                                     .ToString();
 
@@ -473,13 +485,35 @@ namespace Gnosis.Entities
             }
         }
 
-        private void AppendFieldValue(DbConnection conn, DbTransaction trans, string table, Guid id, Guid revision, string fieldName, object value, DbType dbType)
+        protected void AppendFieldValue(DbConnection conn, DbTransaction trans, string table, Guid revision, string fieldName, object value, DbType dbType)
         {
-            string sql = string.Format("INSERT INTO {0}{1} SELECT id, revision, fieldName");
-            throw new NotImplementedException();
+            string selectSql = new SelectQueryBuilder()
+                .AddColumn("Entity", "id")
+                .AddColumn("Entity", "revision")
+                .AddDynamicColumn("@fieldName", "fieldName")
+                .AddDynamicColumn("COUNT(Field.id)", "delta")
+                .AddDynamicColumn("@value", "value")
+                .AddTable(prefix, "Entity")
+                .AddLeftJoin(prefix, table, "Field", "Entity.revision = Field.revision AND Field.fieldName = @fieldName")
+                .AddWhere("Entity.revision = @revision")
+                .AddGroupBy("Entity.id")
+                .AddGroupBy("Entity.revision")
+                .ToString();
+            
+            string sql = string.Format("INSERT INTO {0}{1} {2}", prefix, table, selectSql);
+            Debug.Print(sql);
+
+            using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
+            {
+                AddParameter(cmd, "@revision", revision);
+                AddParameter(cmd, "@fieldName", fieldName);
+                AddParameter(cmd, dbType, "@value", value);
+
+                cmd.ExecuteNonQuery();
+            }
         }
 
-        private void InsertEntity(DbConnection conn, DbTransaction trans, string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected)
+        protected void InsertEntity(DbConnection conn, DbTransaction trans, string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected)
         {
             string sql = new InsertQueryBuilder()
                     .SetTable(prefix, "Entity")

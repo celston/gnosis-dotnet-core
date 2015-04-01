@@ -12,6 +12,14 @@ namespace Gnosis.Entities.Exceptions
         }
     }
 
+    public class InvalidEntityTypeException : GException
+    {
+        public InvalidEntityTypeException(string type)
+            : base("The entity type '{0}' is invalid", type)
+        {
+        }
+    }
+
     public class EntityNotFoundException : GException
     {
         public EntityNotFoundException(Guid id)

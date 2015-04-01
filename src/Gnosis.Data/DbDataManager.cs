@@ -28,6 +28,7 @@ namespace Gnosis.Data
             protected List<string> columns = new List<string>();
             protected List<string> tables = new List<string>();
             protected List<string> wheres = new List<string>();
+            private List<string> groupBys = new List<string>();
 
             public T AddJoin(string prefix, string table, string clause)
             {
@@ -37,6 +38,13 @@ namespace Gnosis.Data
             public T AddJoin(string prefix, string table, string alias, string clause)
             {
                 this.tables.Add(string.Format("JOIN {0}{1} {2} ON {3}", prefix, table, alias, clause));
+
+                return (T)this;
+            }
+
+            public T AddLeftJoin(string prefix, string table, string alias, string clause)
+            {
+                this.tables.Add(string.Format("LEFT JOIN {0}{1} {2} ON {3}", prefix, table, alias, clause));
 
                 return (T)this;
             }
@@ -81,6 +89,13 @@ namespace Gnosis.Data
                 return (T)this;
             }
 
+            public T AddGroupBy(string groupBy)
+            {
+                groupBys.Add(groupBy);
+
+                return (T)this;
+            }
+
             public override string ToString()
             {
                 StringBuilder sb = new StringBuilder();
@@ -99,6 +114,12 @@ namespace Gnosis.Data
                 {
                     sb.Append(" WHERE ");
                     sb.Append(string.Join(" AND ", wheres));
+                }
+
+                if (groupBys.Count() > 0)
+                {
+                    sb.Append(" GROUP BY ");
+                    sb.Append(string.Join(", ", groupBys));
                 }
 
                 return sb.ToString();
@@ -122,9 +143,28 @@ namespace Gnosis.Data
                 return this;
             }
 
-            public SelectQueryBuilder AddColumn(string column)
+            public SelectQueryBuilder AddAllTableColumns(string table)
             {
-                columns.Add(column);
+                columns.Add(string.Format("{0}.*", table));
+
+                return this;
+            }
+
+            public SelectQueryBuilder AddDynamicColumn(string column, string alias)
+            {
+                columns.Add(string.Format("{0} {1}", column, alias));
+
+                return this;
+            }
+
+            public SelectQueryBuilder AddColumn(string table, string columnName)
+            {
+                return AddColumn(table, columnName, columnName);
+            }
+
+            public SelectQueryBuilder AddColumn(string table, string columnName, string alias)
+            {
+                columns.Add(string.Format("{0}.{1} {2}", table, columnName, alias));
 
                 return this;
             }
@@ -135,19 +175,22 @@ namespace Gnosis.Data
 
                 return this;
             }
+
+            public SelectQueryBuilder AddConditionalWhere(bool condition, string where)
+            {
+                if (condition)
+                {
+                    wheres.Add(where);
+                }
+                
+                return this;
+            }
         }
 
         protected abstract class ChangeQueryBuilder<T>
             where T : ChangeQueryBuilder<T>
         {
             protected string table;
-
-            public T SetTable(string table)
-            {
-                this.table = table;
-
-                return (T)this;
-            }
 
             public T SetTable(string prefix, string table)
             {

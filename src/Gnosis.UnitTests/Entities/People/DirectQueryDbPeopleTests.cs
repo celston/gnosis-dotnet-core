@@ -18,7 +18,7 @@ namespace Gnosis.UnitTests.Entities.People
 {
     public class DirectQueryDbPeopleTests : PeopleTests
     {
-        private EntityTestingDbDataManager entityTestingDbDataManager = new EntityTestingDbDataManager(ConfigurationManager.ConnectionStrings["entities"]);
+        private EntityTestingDbDataManager entityTestingDbDataManager = new EntityTestingDbDataManager(ConfigurationManager.ConnectionStrings["entities"], "People_");
         
         [SetUp]
         public void SetUp()
@@ -30,7 +30,7 @@ namespace Gnosis.UnitTests.Entities.People
 
         protected override IPeopleDataManager GetDataManager()
         {
-            return new DirectQueryDbPeopleDataManager(ConfigurationManager.ConnectionStrings["entities"]);
+            return new DirectQueryDbPeopleDataManager(ConfigurationManager.ConnectionStrings["entities"], "People_");
         }
 
         protected override void CreatePerson_MultipleWithSimilarNames_Asserts()

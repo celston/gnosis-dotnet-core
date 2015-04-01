@@ -10,7 +10,7 @@ using Gnosis.Entities.Attributes;
 
 namespace Gnosis.Entities
 {
-    public abstract class EntityManager
+    public abstract class EntityManager : Manager
     {
         #region Private Fields
 
@@ -42,15 +42,23 @@ namespace Gnosis.Entities
         
         protected Guid CreateEntity(IEntityCreateRequest request, string type, string label, bool isProtected)
         {
-            if (entityDataManager.EntityExists(type, request.Id))
-            {
-                throw new EntityExistsException(request.Id);
-            }
-
+            AssertValidEntityType(type);
+            AssertEntityDoesntExist(type, request.Id);
+            
             Guid revision = Guid.NewGuid();
             entityDataManager.CreateEntity(type, request.Id, revision, request.Author, label, request.Created, isProtected, Utility.GetFieldValues(request, request.GetType()));
 
             return revision;
+        }
+
+        protected void AssertEntityExists(string type, Guid id)
+        {
+            Assert(entityDataManager.EntityExists(type, id), new EntityExistsException(id));
+        }
+
+        protected void AssertValidEntityType(string type)
+        {
+            AssertNotIsNullOrWhiteSpace(type, new InvalidEntityTypeException(type));
         }
 
         protected Guid UpdateEntity(IEntityUpdateRequest request, string type)
@@ -60,10 +68,8 @@ namespace Gnosis.Entities
 
         protected Guid UpdateEntity(IEntityUpdateRequest request, string type, string label)
         {
-            if (!entityDataManager.EntityExists(type, request.Id))
-            {
-                throw new EntityNotFoundException(request.Id);
-            }
+            AssertValidEntityType(type);
+            AssertEntityExists(type, request.Id);
 
             Guid revision = Guid.NewGuid();
             entityDataManager.UpdateEntity(request.Id, revision, request.Author, label, request.Updated, Utility.GetFieldValues(request, request.GetType()));
@@ -71,14 +77,16 @@ namespace Gnosis.Entities
             return revision;
         }
 
+        protected void AssertEntityDoesntExist(string type, Guid id)
+        {
+            Assert(!entityDataManager.EntityExists(type, id), new EntityNotFoundException(id));
+        }
+
         protected TResult LoadEntity<TResult>(Guid id, IEnumerable<string> allowedTypes)
             where TResult : IEntity
         {
             string entityType = GetEntityType<TResult>();
-            if (!allowedTypes.Contains(entityType))
-            {
-                throw new UnpermittedEntityTypeException(entityType, allowedTypes);
-            }
+            Assert(allowedTypes.Contains(entityType), new UnpermittedEntityTypeException(entityType, allowedTypes));
             
             return LoadEntity<TResult>(id, entityType);
         }
@@ -88,10 +96,7 @@ namespace Gnosis.Entities
         {
             TResult result = entityDataManager.LoadEntity<TResult>(type, id, Utility.GetFields<TResult>().Values);
 
-            if (result == null)
-            {
-                throw new EntityNotFoundException(id);
-            }
+            AssertNotNull(result, new EntityNotFoundException(id));
 
             return result;
         }
