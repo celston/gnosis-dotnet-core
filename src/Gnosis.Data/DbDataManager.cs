@@ -24,44 +24,65 @@ namespace Gnosis.Data
         protected abstract class SelectQueryBuilder<T>
             where T : SelectQueryBuilder<T>
         {
+            protected string prefix;
             protected bool distinct = false;
             protected List<string> columns = new List<string>();
             protected List<string> tables = new List<string>();
             protected List<string> wheres = new List<string>();
             private List<string> groupBys = new List<string>();
 
-            public T AddJoin(string prefix, string table, string clause)
+            public SelectQueryBuilder(string prefix)
             {
-                return AddJoin(prefix, table, table, clause);
+                this.prefix = prefix;
             }
 
-            public T AddJoin(string prefix, string table, string alias, string clause)
+            public T AddJoin(string table, string clause)
             {
+                return AddJoin(table, table, clause);
+            }
+
+            public T AddJoin(string table, string alias, string clause)
+            {
+                if (tables.Count == 0)
+                {
+                    throw new SelectQueryEmptyTablesOnJoinException(table);
+                }
+                
                 this.tables.Add(string.Format("JOIN {0}{1} {2} ON {3}", prefix, table, alias, clause));
 
                 return (T)this;
             }
 
-            public T AddLeftJoin(string prefix, string table, string alias, string clause)
+            public T AddLeftJoin(string table, string alias, string clause)
             {
+                if (tables.Count == 0)
+                {
+                    throw new SelectQueryEmptyTablesOnJoinException(table);
+                }
+
                 this.tables.Add(string.Format("LEFT JOIN {0}{1} {2} ON {3}", prefix, table, alias, clause));
 
                 return (T)this;
             }
 
-            public T AddTable(string prefix, string table)
+            public T SetTable(string table)
             {
-                return AddTable(prefix, table, table);
+                return SetTable(table, table);
             }
 
-            public T AddTable(string prefix, string table, string alias)
+            public T SetTable(string table, string alias)
             {
+                if (this.tables.Count > 0)
+                {
+                    throw new SelectQueryMultipleTablesException(table, tables.First());
+                }
+                
                 this.tables.Add(string.Format("{0}{1} {2}", prefix, table, alias));
 
                 return (T)this;
             }
 
-            public T AddTables(string prefix, IEnumerable<string> tables)
+            public T AddTables(IEnumerable<string> tables)
             {
                 this.tables.AddRange(tables.Select(x => string.Format("{0}{1} {1}", prefix, x)));
 
@@ -128,7 +149,8 @@ namespace Gnosis.Data
 
         protected class SelectCountQueryBuilder : SelectQueryBuilder<SelectCountQueryBuilder>
         {
-            public SelectCountQueryBuilder()
+            public SelectCountQueryBuilder(string prefix)
+                : base(prefix)
             {
                 columns.Add("COUNT(*)");
             } 
@@ -136,6 +158,11 @@ namespace Gnosis.Data
 
         protected class SelectQueryBuilder : SelectQueryBuilder<SelectQueryBuilder>
         {
+            public SelectQueryBuilder(string prefix)
+                : base(prefix)
+            {
+            }
+            
             public SelectQueryBuilder SetDistinct()
             {
                 distinct = true;

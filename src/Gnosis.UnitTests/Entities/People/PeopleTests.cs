@@ -83,6 +83,11 @@ namespace Gnosis.UnitTests.Entities.People
             public string TwitterUsername { get; set; }
         }
 
+        public class Parent : Person, IParent<Person>
+        {
+            public IEnumerable<Person> Children { get; protected set; }
+        }
+
         #endregion
 
         #region Constructors
@@ -168,8 +173,8 @@ namespace Gnosis.UnitTests.Entities.People
         [Test]
         public void CreateFamily()
         {
-            Guid mother = CreatePerson("Amy", "Elston", new DateTime(1986, 6, 6));
-            Guid father = CreateMyself();
+            Guid motherId = CreatePerson("Amy", "Elston", new DateTime(1986, 6, 6));
+            Guid fatherId = CreateMyself();
 
             PersonCreateRequest childCreateRequest = new PersonCreateRequest()
             {
@@ -178,7 +183,15 @@ namespace Gnosis.UnitTests.Entities.People
                 BirthDate = new DateTime(2014, 5, 17)
             };
 
-            manager.AddChild(mother, father, childCreateRequest);
+            manager.AddChild(motherId, fatherId, childCreateRequest);
+
+            Parent mother = manager.LoadPerson<Parent>(motherId);
+            Parent father = manager.LoadPerson<Parent>(fatherId);
+
+            Assert.NotNull(mother.Children);
+            Assert.AreEqual(1, mother.Children.Count());
+
+            CreateFamily_Asserts();
         }
 
         protected virtual void CreatePerson_Myself_Asserts()
@@ -190,6 +203,10 @@ namespace Gnosis.UnitTests.Entities.People
         }
 
         protected virtual void CreatePerson_UpdateEmployee_UpdateSocialNetworkProfile_Asserts()
+        {
+        }
+
+        protected virtual void CreateFamily_Asserts()
         {
         }
 

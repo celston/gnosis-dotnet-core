@@ -18,8 +18,21 @@ namespace Gnosis.UnitTests.Entities.People
 {
     public class DirectQueryDbPeopleTests : PeopleTests
     {
-        private EntityTestingDbDataManager entityTestingDbDataManager = new EntityTestingDbDataManager(ConfigurationManager.ConnectionStrings["entities"], "People_");
+        protected virtual string DatabasePrefix
+        {
+            get
+            {
+                return "";
+            }
+        }
         
+        protected EntityTestingDbDataManager entityTestingDbDataManager;
+
+        public DirectQueryDbPeopleTests()
+        {
+            entityTestingDbDataManager = new EntityTestingDbDataManager(ConfigurationManager.ConnectionStrings["entities"], DatabasePrefix);
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -30,7 +43,7 @@ namespace Gnosis.UnitTests.Entities.People
 
         protected override IPeopleDataManager GetDataManager()
         {
-            return new DirectQueryDbPeopleDataManager(ConfigurationManager.ConnectionStrings["entities"], "People_");
+            return new DirectQueryDbPeopleDataManager(ConfigurationManager.ConnectionStrings["entities"], DatabasePrefix);
         }
 
         protected override void CreatePerson_MultipleWithSimilarNames_Asserts()
@@ -59,6 +72,16 @@ namespace Gnosis.UnitTests.Entities.People
             Assert.AreEqual(4, entityTestingDbDataManager.GetDataTextCount(), "DataText count");
             Assert.AreEqual(9, entityTestingDbDataManager.GetFieldTextCount(), "FieldText count");
             Assert.AreEqual(1, entityTestingDbDataManager.GetFieldBitCount(), "FieldBit count");
+        }
+
+        protected override void CreateFamily_Asserts()
+        {
+            Assert.AreEqual(3, entityTestingDbDataManager.GetEntityCount());
+            Assert.AreEqual(5, entityTestingDbDataManager.GetEntityRevisionCount());
+            Assert.AreEqual(0, entityTestingDbDataManager.GetFieldBitCount());
+            Assert.AreEqual(5, entityTestingDbDataManager.GetFieldDateTimeCount());
+            Assert.AreEqual(10, entityTestingDbDataManager.GetFieldTextCount());
+            Assert.AreEqual(4, entityTestingDbDataManager.GetDataTextCount());
         }
 
         #endregion

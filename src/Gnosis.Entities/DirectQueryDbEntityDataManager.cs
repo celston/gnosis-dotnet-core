@@ -17,7 +17,19 @@ namespace Gnosis.Entities
     public class DirectQueryDbEntityDataManager : DbDataManager, IEntityDataManager
     {
         private InitializeEntityDelegate initializeEntityDelegate;
-        
+
+        #region Nested Classes
+
+        protected class NestedEntityPlaceholder
+        {
+            public string FieldName { get; set; }
+            public int Delta { get; set; }
+            public Guid Value { get; set; }
+            public string Type { get; set; }
+        }
+
+        #endregion
+
         #region Constructors
 
         public DirectQueryDbEntityDataManager(ConnectionStringSettings connectionStringSettings)
@@ -42,8 +54,8 @@ namespace Gnosis.Entities
             {
                 using (DbTransaction trans = conn.BeginTransaction())
                 {
-                    string sql = new SelectCountQueryBuilder()
-                    .AddTable(prefix, "Entity")
+                    string sql = new SelectCountQueryBuilder(prefix)
+                    .SetTable("Entity")
                     .AddWhere("Entity.type = @type")
                     .AddWhere("Entity.status = 1")
                     .AddWhere("Entity.id = @id")
@@ -102,34 +114,7 @@ namespace Gnosis.Entities
             {
                 using (DbTransaction trans = conn.BeginTransaction())
                 {
-                    Guid revision;
-                    Guid? author = null;
-                    DateTime created;
-                    DateTime updated;
-                    
-                    using (DbCommand cmd = SelectEntity(conn, trans, id, type))
-                    {
-                        using (DbDataReader dr = cmd.ExecuteReader())
-                        {
-                            if (dr.Read())
-                            {
-                                revision = (Guid)dr["revision"];
-                                if (dr["author"] != DBNull.Value)
-                                {
-                                    author = (Guid)dr["author"];
-                                }
-                                created = (DateTime)dr["created"];
-                                updated = (DateTime)dr["updated"];
-                            }
-                            else
-                            {
-                                throw new EntityNotFoundException(id);
-                            }
-                        }
-                    }
-
-                    result.GrantInitializeEntityDelegate(this);
-                    initializeEntityDelegate(id, revision, author, created, updated, LoadEntityFieldValues(conn, trans, revision, fields));
+                    LoadEntityHelper<T>(conn, trans, type, id, fields, result);
                 }
             }
 
@@ -146,9 +131,9 @@ namespace Gnosis.Entities
                 {
                     using (DbTransaction trans = conn.BeginTransaction())
                     {
-                        string sql = new SelectQueryBuilder()
+                        string sql = new SelectQueryBuilder(prefix)
                         .AddColumn("Entity", "type")
-                        .AddTable(prefix, "Entity")
+                        .SetTable("Entity")
                         .AddInWhere("Entity", "id", ids.Count())
                         .ToString();
 
@@ -196,6 +181,39 @@ namespace Gnosis.Entities
 
         #region Protected Methods
 
+        protected void LoadEntityHelper<T>(DbConnection conn, DbTransaction trans, string type, Guid id, IEnumerable<EntityField> fields, T result)
+            where T : IEntity
+        {
+            Guid revision;
+            Guid? author = null;
+            DateTime created;
+            DateTime updated;
+
+            using (DbCommand cmd = SelectEntity(conn, trans, id, type))
+            {
+                using (DbDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        revision = (Guid)dr["revision"];
+                        if (dr["author"] != DBNull.Value)
+                        {
+                            author = (Guid)dr["author"];
+                        }
+                        created = (DateTime)dr["created"];
+                        updated = (DateTime)dr["updated"];
+                    }
+                    else
+                    {
+                        throw new EntityNotFoundException(id);
+                    }
+                }
+            }
+
+            result.GrantInitializeEntityDelegate(this);
+            initializeEntityDelegate(id, revision, author, created, updated, LoadEntityFieldValues(conn, trans, revision, fields));
+        }
+
         protected void CreateEntityHelper(DbConnection conn, DbTransaction trans, string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected, IEnumerable<EntityFieldValue> fieldValues)
         {
             InsertEntity(conn, trans, type, id, revision, author, label, created, isProtected);
@@ -209,20 +227,19 @@ namespace Gnosis.Entities
             string fieldNames = string.Join(", ", fieldValues.Select(x => string.Format("'{0}'", x.Field.Name)));
             foreach (string table in new string[] { "FieldBit", "FieldInteger", "FieldDecimal", "FieldText", "FieldDateTime" })
             {
-                string selectSql = new SelectQueryBuilder()
+                string selectSql = new SelectQueryBuilder(prefix)
                     .AddColumn("Entity", "id")
                     .AddDynamicColumn("@revision", "revision")
                     .AddColumn("Field", "fieldName")
                     .AddColumn("Field", "delta")
                     .AddColumn("Field", "value")
-                    .AddTable(prefix, "Entity")
-                    .AddJoin(prefix, table, "Field", string.Format("Entity.revision = Field.revision", table))
+                    .SetTable("Entity")
+                    .AddJoin(table, "Field", string.Format("Entity.revision = Field.revision", table))
                     .AddWhere("Entity.id = @id")
                     .AddConditionalWhere(fieldNames.Count() > 0, string.Format("Field.fieldName NOT IN ({0})", fieldNames))
                     .ToString();
 
                 string sql = string.Format("INSERT INTO {0}{1} (id, revision, fieldName, delta, value) {2}", prefix, table, selectSql);
-                Debug.Print(sql);
                 using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
                 {
                     AddParameter(cmd, "@id", id);
@@ -265,8 +282,7 @@ namespace Gnosis.Entities
                     .SetTable(prefix, "EntityRevision")
                     .AddColumns(new string[] { "id", "revision", "author", "label", "created" })
                     .ToString();
-            Debug.Print(sql);
-
+            
             using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
             {
                 AddParameter(cmd, "@id", id);
@@ -281,8 +297,8 @@ namespace Gnosis.Entities
 
         protected DbCommand SelectEntity(DbConnection conn, DbTransaction trans, Guid id, string type)
         {
-            string sql = new SelectQueryBuilder()
-                .AddTable(prefix, "Entity")
+            string sql = new SelectQueryBuilder(prefix)
+                .SetTable("Entity")
                 .AddAllTableColumns("Entity")
                 .AddWhere("id = @id")
                 .AddWhere("status = 1")
@@ -296,45 +312,113 @@ namespace Gnosis.Entities
             return cmd;
         }
 
+        protected Dictionary<string, Dictionary<int, object>> LoadTextEntityFieldValues(DbConnection conn, DbTransaction trans, Guid revision, IEnumerable<EntityField> fields)
+        {
+            Dictionary<string, Dictionary<int, object>> result = new Dictionary<string, Dictionary<int, object>>();
+
+            IEnumerable<EntityField> filteredFields = fields.Where(x => x.IsString);
+            if (filteredFields.Count() > 0)
+            {
+                string fieldNames = string.Join(", ", filteredFields.Select(x => string.Format("'{0}'", x.Name)));
+                string sql = new SelectQueryBuilder(prefix)
+                    .AddColumn("FieldText", "fieldName")
+                    .AddColumn("FieldText", "delta")
+                    .AddColumn("DataText", "data", "value")
+                    .SetTable("FieldText")
+                    .AddJoin("DataText", "FieldText.value = DataText.md5")
+                    .AddWhere("FieldText.revision = @revision")
+                    .AddWhere(string.Format("FieldText.fieldName IN ({0})", fieldNames))
+                    .ToString();
+
+                ProcessLoadEntityFields(conn, trans, sql, revision, result);
+            }
+
+            return result;
+        }
+
+        protected Dictionary<string, Dictionary<int, object>> LoadDateTimeEntityFieldValues(DbConnection conn, DbTransaction trans, Guid revision, IEnumerable<EntityField> fields)
+        {
+            Dictionary<string, Dictionary<int, object>> result = new Dictionary<string, Dictionary<int, object>>();
+
+            IEnumerable<EntityField> filteredFields = fields.Where(x => x.IsDateTime);
+            if (filteredFields.Count() > 0)
+            {
+                string fieldNames = string.Join(", ", filteredFields.Select(x => string.Format("'{0}'", x.Name)));
+                string sql = GetBasicFieldsSelectQuery("FieldDateTime", fieldNames);
+
+                ProcessLoadEntityFields(conn, trans, sql, revision, result);
+            }
+
+            return result;
+        }
+
+        protected Dictionary<string, Dictionary<int, object>> LoadNestedEntityEntityFieldValues(DbConnection conn, DbTransaction trans, Guid revision, IEnumerable<EntityField> fields)
+        {
+            Dictionary<string, Dictionary<int, object>> result = new Dictionary<string, Dictionary<int, object>>();
+            
+            IEnumerable<EntityField> entityFields = fields.Where(x => x.IsEntity || x.IsEntityReference);
+            if (entityFields.Count() > 0)
+            {
+                string fieldNames = string.Join(", ", entityFields.Select(x => string.Format("'{0}'", x.Name)));
+                string sql = new SelectQueryBuilder(prefix)
+                    .AddColumn("FieldUniqueidentifier", "fieldName")
+                    .AddColumn("FieldUniqueidentifier", "delta")
+                    .AddColumn("FieldUniqueidentifier", "value")
+                    .AddColumn("Entity", "type")
+                    .SetTable("FieldUniqueidentifier")
+                    .AddJoin("Entity", "FieldUniqueidentifier.value = Entity.id AND Entity.status = 1")
+                    .AddWhere("FieldUniqueidentifier.revision = @revision")
+                    .AddWhere(string.Format("FieldUniqueidentifier.fieldName IN ({0})", fieldNames))
+                    .ToString();
+
+                using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
+                {
+                    AddParameter(cmd, "revision", revision);
+
+                    List<NestedEntityPlaceholder> placeholders = new List<NestedEntityPlaceholder>();
+                    using (DbDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            placeholders.Add(new NestedEntityPlaceholder()
+                            {
+                                FieldName = (string)dr["fieldName"],
+                                Delta = (int)dr["delta"],
+                                Value = (Guid)dr["value"],
+                                Type = (string)dr["type"]
+                            });
+                        }
+                    }
+
+                    IDictionary<string, EntityField> fieldHash = fields.ToDictionary<EntityField, string>(x => x.Name);
+                    foreach (NestedEntityPlaceholder placeholder in placeholders)
+                    {
+                        EntityField field = fieldHash[placeholder.FieldName];
+                        if (field.IsEntity)
+                        {
+                        }
+                        else if (field.IsEntityReference)
+                        {
+
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+        
         protected IEnumerable<EntityFieldValue> LoadEntityFieldValues(DbConnection conn, DbTransaction trans, Guid revision, IEnumerable<EntityField> fields)
         {
             List<EntityFieldValue> result = new List<EntityFieldValue>();
 
             Dictionary<string, Dictionary<int, object>> temp = new Dictionary<string, Dictionary<int, object>>();
+
+            Dictionary<string, Dictionary<int, object>> textFields = LoadTextEntityFieldValues(conn, trans, revision, fields);
+            Dictionary<string, Dictionary<int, object>> dateTimeFields = LoadDateTimeEntityFieldValues(conn, trans, revision, fields);
+
             
-            IEnumerable<EntityField> textFields = fields.Where(x => x.IsString);
-            if (textFields.Count() > 0)
-            {
-                string fieldNames = string.Join(", ", textFields.Select(x => string.Format("'{0}'", x.Name)));
-                string sql = new SelectQueryBuilder()
-                    .AddColumn("FieldText", "fieldName")
-                    .AddColumn("FieldText", "delta")
-                    .AddColumn("DataText", "data", "value")
-                    .AddTable(prefix, "FieldText")
-                    .AddJoin(prefix, "DataText", "FieldText.value = DataText.md5")
-                    .AddWhere("FieldText.revision = @revision")
-                    .AddWhere(string.Format("FieldText.fieldName IN ({0})", fieldNames))
-                    .ToString();
-
-                ProcessLoadEntityFields(conn, trans, sql, revision, temp);
-            }
-
-            IEnumerable<EntityField> dateTimeFields = fields.Where(x => x.IsDateTime);
-            if (dateTimeFields.Count() > 0)
-            {
-                string fieldNames = string.Join(", ", dateTimeFields.Select(x => string.Format("'{0}'", x.Name)));
-                string sql = new SelectQueryBuilder()
-                    .AddColumn("FieldDateTime", "fieldName")
-                    .AddColumn("FieldDateTime", "delta")
-                    .AddColumn("FieldDateTime", "value")
-                    .AddTable(prefix, "FieldDateTime")
-                    .AddWhere("FieldDateTime.revision = @revision")
-                    .AddWhere(string.Format("FieldDateTime.fieldName IN ({0})", fieldNames))
-                    .ToString();
-
-                ProcessLoadEntityFields(conn, trans, sql, revision, temp);
-            }
-
+            
             foreach (EntityField field in fields)
             {
                 if (temp.ContainsKey(field.Name))
@@ -342,7 +426,18 @@ namespace Gnosis.Entities
                     object value;
                     if (field.IsList)
                     {
-                        value = temp[field.Name].Values;
+                        if (field.IsEntityReference)
+                        {
+                            throw new NotImplementedException();
+                        }
+                        else if (field.IsEntity)
+                        {
+                            throw new NotImplementedException();
+                        }
+                        else
+                        {
+                            value = temp[field.Name].Values;
+                        }
                     }
                     else
                     {
@@ -354,6 +449,18 @@ namespace Gnosis.Entities
             }
 
             return result;
+        }
+
+        protected string GetBasicFieldsSelectQuery(string table, string fieldNames)
+        {
+            return new SelectQueryBuilder(prefix)
+                    .AddColumn(table, "fieldName")
+                    .AddColumn(table, "delta")
+                    .AddColumn(table, "value")
+                    .SetTable(table)
+                    .AddWhere("revision = @revision")
+                    .AddWhere(string.Format("fieldName IN ({0})", fieldNames))
+                    .ToString();
         }
 
         protected void ProcessLoadEntityFields(DbConnection conn, DbTransaction trans, string sql, Guid revision, Dictionary<string, Dictionary<int, object>> temp)
@@ -437,8 +544,8 @@ namespace Gnosis.Entities
 
         protected int SelectCountDataText(DbConnection conn, DbTransaction trans, Guid md5)
         {
-            string sql = new SelectCountQueryBuilder()
-                .AddTable(prefix, "DataText")
+            string sql = new SelectCountQueryBuilder(prefix)
+                .SetTable("DataText")
                 .AddWhere("md5 = @md5")
                 .ToString();
 
@@ -487,22 +594,21 @@ namespace Gnosis.Entities
 
         protected void AppendFieldValue(DbConnection conn, DbTransaction trans, string table, Guid revision, string fieldName, object value, DbType dbType)
         {
-            string selectSql = new SelectQueryBuilder()
+            string selectSql = new SelectQueryBuilder(prefix)
                 .AddColumn("Entity", "id")
                 .AddColumn("Entity", "revision")
                 .AddDynamicColumn("@fieldName", "fieldName")
                 .AddDynamicColumn("COUNT(Field.id)", "delta")
                 .AddDynamicColumn("@value", "value")
-                .AddTable(prefix, "Entity")
-                .AddLeftJoin(prefix, table, "Field", "Entity.revision = Field.revision AND Field.fieldName = @fieldName")
+                .SetTable("Entity")
+                .AddLeftJoin(table, "Field", "Entity.revision = Field.revision AND Field.fieldName = @fieldName")
                 .AddWhere("Entity.revision = @revision")
                 .AddGroupBy("Entity.id")
                 .AddGroupBy("Entity.revision")
                 .ToString();
             
             string sql = string.Format("INSERT INTO {0}{1} {2}", prefix, table, selectSql);
-            Debug.Print(sql);
-
+            
             using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
             {
                 AddParameter(cmd, "@revision", revision);

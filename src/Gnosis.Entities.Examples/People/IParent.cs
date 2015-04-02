@@ -12,6 +12,7 @@ namespace Gnosis.Entities.Examples.People
     public interface IParent<T>
         where T : IEntity, IPerson
     {
+        [EntityField]
         IEnumerable<T> Children { get; }
     }
 }

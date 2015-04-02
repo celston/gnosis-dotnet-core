@@ -61,7 +61,7 @@ namespace Gnosis.Testing.Data
             {
                 using (DbTransaction trans = conn.BeginTransaction())
                 {
-                    string sql = new SelectCountQueryBuilder().AddTable(prefix, table).ToString();
+                    string sql = new SelectCountQueryBuilder(prefix).SetTable(prefix, table).ToString();
 
                     using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
                     {
