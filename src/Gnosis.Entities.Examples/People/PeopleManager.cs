@@ -22,7 +22,7 @@ namespace Gnosis.Entities.Examples.People
 
         public bool PersonExists(Guid id)
         {
-            return EntityExists(id, TYPE_PERSON);
+            return EntityExists(id);
         }
 
         public T LoadPerson<T>(Guid id) where T : IEntity, IPerson
@@ -52,19 +52,10 @@ namespace Gnosis.Entities.Examples.People
 
         public void AddChild(Guid motherId, Guid fatherId, IPersonCreateRequest childCreateRequest)
         {
-            if (!EntityExists(motherId, TYPE_PERSON))
-            {
-                throw new EntityNotFoundException(motherId);
-            }
-            if (!EntityExists(fatherId, TYPE_PERSON))
-            {
-                throw new EntityNotFoundException(fatherId);
-            }
-            if (EntityExists(childCreateRequest.Id, TYPE_PERSON))
-            {
-                throw new EntityExistsException(childCreateRequest.Id);
-            }
-
+            AssertEntityExists(motherId);
+            AssertEntityExists(fatherId);
+            AssertEntityDoesntExist(childCreateRequest.Id);
+            
             Guid motherRevision = Guid.NewGuid();
             Guid fatherRevision = Guid.NewGuid();
             Guid childRevision = Guid.NewGuid();

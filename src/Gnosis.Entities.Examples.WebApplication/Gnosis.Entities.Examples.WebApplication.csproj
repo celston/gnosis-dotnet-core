@@ -119,6 +119,9 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Content Include="..\bower_components\angular\angular.min.js">
+      <Link>Content\Vendor\angular\angular.min.js</Link>
+    </Content>
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -149,6 +152,28 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Fruits\Views\Home\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gnosis.Data\Gnosis.Data.csproj">
+      <Project>{41fb9458-9a29-4edd-911b-0fb523f3c116}</Project>
+      <Name>Gnosis.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Entities.Examples\Gnosis.Entities.Examples.csproj">
+      <Project>{773729df-eb98-4d4c-ae1f-25fb82c3a9a2}</Project>
+      <Name>Gnosis.Entities.Examples</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Entities\Gnosis.Entities.csproj">
+      <Project>{bb9b1872-451b-4cde-9498-cfb8fdbeb2f8}</Project>
+      <Name>Gnosis.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Reflection\Gnosis.Reflection.csproj">
+      <Project>{13b14358-6d0e-4e40-a8a1-19e997f41bf2}</Project>
+      <Name>Gnosis.Reflection</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis\Gnosis.csproj">
+      <Project>{05a6cebb-860c-4ffa-8ae1-99fff5f1792c}</Project>
+      <Name>Gnosis</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -184,4 +209,7 @@
   </Target>
   <Target Name="AfterBuild">
   </Target> -->
+  <Target Name="CopyLinkedContentFiles" BeforeTargets="Build">
+    <Copy SourceFiles="%(Content.Identity)" DestinationFiles="%(Content.Link)" SkipUnchangedFiles='true' OverwriteReadOnlyFiles='true' Condition="'%(Content.Link)' != ''" />
+  </Target>
 </Project>

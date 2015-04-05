@@ -87,6 +87,10 @@
     <Compile Include="People\ISocialNetworkProfileUpdateRequest.cs" />
     <Compile Include="People\PeopleManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Widgets\IWidget.cs" />
+    <Compile Include="Widgets\IWidgetCreateRequest.cs" />
+    <Compile Include="Widgets\IWidgetDataManager.cs" />
+    <Compile Include="Widgets\WidgetManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Gnosis.Data\Gnosis.Data.csproj">

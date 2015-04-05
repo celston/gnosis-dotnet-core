@@ -12,6 +12,19 @@ namespace Gnosis.Entities
 {
     public abstract class EntityManager : Manager
     {
+        #region Constructors
+
+        public EntityManager()
+        {
+        }
+
+        public EntityManager(IEntityDataManager entityDataManager)
+        {
+            SetEntityDataManager(entityDataManager);
+        }
+
+        #endregion
+
         #region Private Fields
 
         private IEntityDataManager entityDataManager;
@@ -20,9 +33,9 @@ namespace Gnosis.Entities
 
         #region Protected Methods
 
-        protected bool EntityExists(Guid id, string type)
+        protected bool EntityExists(Guid id)
         {
-            return entityDataManager.EntityExists(type, id);
+            return entityDataManager.EntityExists(id);
         }
 
         protected Guid CreateEntity(IEntityCreateRequest request, string type)
@@ -43,7 +56,7 @@ namespace Gnosis.Entities
         protected Guid CreateEntity(IEntityCreateRequest request, string type, string label, bool isProtected)
         {
             AssertValidEntityType(type);
-            AssertEntityDoesntExist(type, request.Id);
+            AssertEntityDoesntExist(request.Id);
             
             Guid revision = Guid.NewGuid();
             entityDataManager.CreateEntity(type, request.Id, revision, request.Author, label, request.Created, isProtected, Utility.GetFieldValues(request, request.GetType()));
@@ -51,9 +64,17 @@ namespace Gnosis.Entities
             return revision;
         }
 
-        protected void AssertEntityExists(string type, Guid id)
+        protected void AssertEntitiesExist(IEnumerable<Guid> ids)
         {
-            Assert(entityDataManager.EntityExists(type, id), new EntityExistsException(id));
+            foreach (Guid id in ids)
+            {
+                AssertEntityExists(id);
+            }
+        }
+
+        protected void AssertEntityExists(Guid id)
+        {
+            Assert(entityDataManager.EntityExists(id), new EntityNotFoundException(id));
         }
 
         protected void AssertValidEntityType(string type)
@@ -69,7 +90,7 @@ namespace Gnosis.Entities
         protected Guid UpdateEntity(IEntityUpdateRequest request, string type, string label)
         {
             AssertValidEntityType(type);
-            AssertEntityExists(type, request.Id);
+            AssertEntityExists(request.Id);
 
             Guid revision = Guid.NewGuid();
             entityDataManager.UpdateEntity(request.Id, revision, request.Author, label, request.Updated, Utility.GetFieldValues(request, request.GetType()));
@@ -77,34 +98,61 @@ namespace Gnosis.Entities
             return revision;
         }
 
-        protected void AssertEntityDoesntExist(string type, Guid id)
+        protected void AssertEntityDoesntExist(Guid id)
         {
-            Assert(!entityDataManager.EntityExists(type, id), new EntityNotFoundException(id));
+            Assert(!entityDataManager.EntityExists(id), new EntityNotFoundException(id));
         }
 
-        protected TResult LoadEntity<TResult>(Guid id, IEnumerable<string> allowedTypes)
+        protected IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids)
+            where T : IEntity
+        {
+            IEnumerable<EntityField> fields = Utility.GetFields(typeof(T));
+            return LoadEntitiesHelper<T>(ids, fields, fields);
+        }
+
+        protected IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids, Type type)
+            where T : IEntity
+        {
+            IEnumerable<EntityField> fields = Utility.GetFields(type);
+            return LoadEntitiesHelper<T>(ids, fields, fields);
+        }
+
+        protected T LoadEntity<T>(Guid id, string type)
+            where T : IEntity
+        {
+            IEnumerable<EntityField> fields = Utility.GetFields(Utility.GetMatchingEntityType<T>(type));
+
+            return LoadEntitiesHelper<T>(new Guid[] { id }, fields, fields).FirstOrDefault();
+        }
+
+        protected T LoadEntity<T>(Guid id, string entityType, params Type[] types)
+            where T : IEntity
+        {
+            return LoadEntitiesHelper<T>(new Guid[] { id }, Utility.GetFields<T>(), Utility.GetFields(types)).FirstOrDefault();
+        }
+
+        protected IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids, IEnumerable<Type> types)
+            where T : IEntity
+        {
+            IEnumerable<EntityField> fields = Utility.GetFields(types);
+
+            return LoadEntitiesHelper<T>(ids, fields, fields);
+        }
+
+        protected T LoadEntity<T>(Guid id, params Type[] types)
+            where T : IEntity
+        {
+            IEnumerable<EntityField> fields = Utility.GetFields(types);
+
+            return LoadEntitiesHelper<T>(new Guid[] { id }, fields, fields).FirstOrDefault();
+        }
+
+        private IEnumerable<TResult> LoadEntitiesHelper<TResult>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields)
             where TResult : IEntity
         {
-            string entityType = GetEntityType<TResult>();
-            Assert(allowedTypes.Contains(entityType), new UnpermittedEntityTypeException(entityType, allowedTypes));
+            AssertEntitiesExist(ids);
             
-            return LoadEntity<TResult>(id, entityType);
-        }
-
-        protected TResult LoadEntity<TResult>(Guid id, string type)
-            where TResult : IEntity
-        {
-            TResult result = entityDataManager.LoadEntity<TResult>(type, id, Utility.GetFields<TResult>().Values);
-
-            AssertNotNull(result, new EntityNotFoundException(id));
-
-            return result;
-        }
-
-        protected IEnumerable<TResult> LoadEntities<TResult>(IEnumerable<Guid> ids, IEnumerable<Type> types)
-            where TResult : IEntity
-        {
-            return entityDataManager.LoadEntities<TResult>(ids, Utility.GetFields(types));
+            return entityDataManager.LoadEntities<TResult>(ids, fields, nestedFields);
         }
 
         protected void SetEntityDataManager(IEntityDataManager entityDataManager)

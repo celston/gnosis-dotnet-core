@@ -79,16 +79,19 @@ namespace Gnosis.UnitTests.Entities
             }
         }
 
+        [EntityType("Basket")]
         public class BasketByIds : Entity, IBasketByIds
         {
             public List<Guid> Fruit { get; private set; }
         }
 
+        [EntityType("Basket")]
         public class BasketByReferences : Entity, IBasketByReferences
         {
             public IEnumerable<FruitReference> Fruit { get; private set; }
         }
 
+        [EntityType("Basket")]
         public class BasketByOjects : Entity, IBasketByObjects
         {
             public IEnumerable<Fruit> Fruit { get; private set; }
@@ -145,6 +148,7 @@ namespace Gnosis.UnitTests.Entities
 
             Assert.AreEqual(basketCreateRequest.Fruit.Count, b1.Fruit.Count);
             Assert.AreEqual(basketCreateRequest.Fruit.Count, b2.Fruit.Count());
+            Assert.AreEqual(basketCreateRequest.Fruit.Count, b3.Fruit.Count());
 
             for (var i = 0; i < 9; i++)
             {
@@ -154,14 +158,26 @@ namespace Gnosis.UnitTests.Entities
             }
 
             Assert.IsInstanceOf<FujiAppleReference>(b2.Fruit.ElementAt(0));
+            Assert.IsInstanceOf<FujiApple>(b3.Fruit.ElementAt(0));
             Assert.IsInstanceOf<GalaAppleReference>(b2.Fruit.ElementAt(1));
+            Assert.IsInstanceOf<GalaApple>(b3.Fruit.ElementAt(1));
             Assert.IsInstanceOf<HoneycrispAppleReference>(b2.Fruit.ElementAt(2));
+            Assert.IsInstanceOf<HoneycrispApple>(b3.Fruit.ElementAt(2));
             Assert.IsInstanceOf<BloodOrangeReference>(b2.Fruit.ElementAt(3));
+            Assert.IsInstanceOf<BloodOrange>(b3.Fruit.ElementAt(3));
             Assert.IsInstanceOf<NavelOrangeReference>(b2.Fruit.ElementAt(4));
+            Assert.IsInstanceOf<NavelOrange>(b3.Fruit.ElementAt(4));
             Assert.IsInstanceOf<ValenciaOrangeReference>(b2.Fruit.ElementAt(5));
-            Assert.IsInstanceOf<BananaReference>(b2.Fruit.ElementAt(6));
-            Assert.IsInstanceOf<BananaReference>(b2.Fruit.ElementAt(7));
-            Assert.IsInstanceOf<BananaReference>(b2.Fruit.ElementAt(8));
+            Assert.IsInstanceOf<ValenciaOrange>(b3.Fruit.ElementAt(5));
+
+            for (var i = 6; i < 9; i++)
+            {
+                Assert.IsInstanceOf<BananaReference>(b2.Fruit.ElementAt(i));
+                Assert.IsInstanceOf<Banana>(b3.Fruit.ElementAt(i));
+            }
+
+            Assert.AreEqual(3, b3.Fruit.OfType<Apple>().Count());
+            Assert.AreEqual(3, b3.Fruit.OfType<Apple>().Where(x => x.Color == "red").Count());
         }
 
         [Test]
@@ -175,13 +191,18 @@ namespace Gnosis.UnitTests.Entities
         [Test]
         public void GetFields([Values(typeof(GalaApple), typeof(HoneycrispApple), typeof(FujiApple), typeof(NavelOrange), typeof(ValenciaOrange), typeof(BloodOrange), typeof(Banana))] Type type)
         {
-            IDictionary<string, EntityField> fields = Gnosis.Entities.Utility.GetFields(type);
-            foreach (KeyValuePair<string, EntityField> kvp in fields)
+            IEnumerable<EntityField> fields = Gnosis.Entities.Utility.GetFields(type);
+            foreach (EntityField field in fields)
             {
-                Assert.AreEqual(kvp.Key, kvp.Value.Name);
-                Debug.Print("{0}, {1}", kvp.Key, kvp.Value.Property.DeclaringType.FullName);
-                Debug.Print("{0}", kvp.Value.Property.DeclaringType.IsAssignableFrom(type));
+                Debug.Print("{0}, {1}", field.Name, field.Property.DeclaringType.FullName);
+                Debug.Print("{0}", field.Property.DeclaringType.IsAssignableFrom(type));
             }
+        }
+
+        [Test]
+        public void GetMatchingEntityType_BasketByIds()
+        {
+            GetMatchingEntityType<BasketByIds>("Basket", typeof(BasketByIds));
         }
 
         #endregion

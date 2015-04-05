@@ -35,7 +35,7 @@ namespace Gnosis.Entities.Examples.Fruits
         public T LoadApple<T>(Guid id)
             where T : Apple
         {
-            return LoadEntity<T>(id, new string[] { GetEntityType<FujiApple>(), GetEntityType<HoneycrispApple>(), GetEntityType<GalaApple>() });
+            return LoadEntity<T>(id, typeof(GalaApple), typeof(FujiApple), typeof(HoneycrispApple));
         }
 
         public Guid CreateOrange<T>(IOrangeCreateRequest request)
@@ -61,7 +61,7 @@ namespace Gnosis.Entities.Examples.Fruits
 
         public T LoadBasket<T>(Guid id) where T : IEntity
         {
-            return LoadEntity<T>(id, "Basket");
+            return LoadEntity<T>(id, "Basket", typeof(FujiApple), typeof(GalaApple), typeof(HoneycrispApple));
         }
 
         #endregion

@@ -29,6 +29,13 @@ namespace Gnosis.UnitTests.Entities
             Assert.AreEqual(ExpectedFieldCount, fields.Count());
         }
 
+        protected void GetMatchingEntityType<T>(string entityType, Type expectedType)
+            where T : IEntity
+        {
+            Type actualType = Gnosis.Entities.Utility.GetMatchingEntityType<T>(entityType);
+            Assert.AreEqual(expectedType, actualType);
+        }
+
         
     }
 }

@@ -54,9 +54,9 @@ namespace Gnosis.Entities.Testing.Data
 
         #region Public Methods
 
-        public bool EntityExists(string type, Guid id)
+        public bool EntityExists(Guid id)
         {
-            return entities.ContainsKey(id) && entities[id].Type == type;
+            return entities.ContainsKey(id);
         }
 
         public void CreateEntity(string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected, IEnumerable<EntityFieldValue> fieldValues)
@@ -111,21 +111,6 @@ namespace Gnosis.Entities.Testing.Data
             }
         }
         
-        public T LoadEntity<T>(string type, Guid id, IEnumerable<EntityField> fields) where T : IEntity
-        {
-            T result = default(T);
-
-            if (entities.ContainsKey(id)) {
-                MemoryEntity me = entities[id];
-                result = Activator.CreateInstance<T>();
-
-                result.GrantInitializeEntityDelegate(this);
-                initializeEntityDelegate(me.Id, me.Revision, me.Author, me.Created, me.Updated, LoadEntityFields(me.Revision, fields));
-            }
-
-            return result;
-        }
-
         public void AcceptInitializeDelegate(InitializeEntityDelegate d)
         {
             initializeEntityDelegate = d;
@@ -141,7 +126,7 @@ namespace Gnosis.Entities.Testing.Data
             return entities.Values.Where(x => ids.Contains(x.Id)).Select(x => x.Type).Distinct();
         }
 
-        public IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields) where T : IEntity
+        public IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields) where T : IEntity
         {
             List<T> result = new List<T>();
 
@@ -153,7 +138,7 @@ namespace Gnosis.Entities.Testing.Data
                 IEnumerable<EntityField> filteredFields = fields.Where(x => x.Property.DeclaringType.IsAssignableFrom(matchingType));
 
                 entity.GrantInitializeEntityDelegate(this);
-                initializeEntityDelegate(me.Id, me.Revision, me.Author, me.Created, me.Updated, LoadEntityFields(me.Revision, filteredFields));
+                initializeEntityDelegate(me.Id, me.Revision, me.Author, me.Created, me.Updated, LoadEntityFields(me.Revision, filteredFields, nestedFields));
 
                 result.Add(entity);
             }
@@ -165,7 +150,7 @@ namespace Gnosis.Entities.Testing.Data
 
         #region Protected Methods
 
-        protected IEnumerable<EntityFieldValue> LoadEntityFields(Guid revision, IEnumerable<EntityField> fields)
+        protected IEnumerable<EntityFieldValue> LoadEntityFields(Guid revision, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields)
         {
             List<EntityFieldValue> result = new List<EntityFieldValue>();
 
@@ -183,7 +168,7 @@ namespace Gnosis.Entities.Testing.Data
                 {
                     if (ef.IsList)
                     {
-                        efv = new EntityFieldValue(ef, ef.Property, GenerateEntityListGeneric(ef, revision));
+                        efv = new EntityFieldValue(ef, ef.Property, GenerateEntityListGeneric(ef, revision, nestedFields));
                     }
                 }
                 else
@@ -200,9 +185,9 @@ namespace Gnosis.Entities.Testing.Data
             return result;
         }
 
-        protected object GenerateEntityListGeneric(EntityField ef, Guid revision)
+        protected object GenerateEntityListGeneric(EntityField ef, Guid revision, IEnumerable<EntityField> fields)
         {
-            return Utility.GenerateEntityListGeneric(ef, this, (IEnumerable<Guid>)fieldValues[revision][ef.Name]);
+            return Utility.GenerateEntityListGeneric(ef, this, (IEnumerable<Guid>)fieldValues[revision][ef.Name], fields);
         }
 
         protected object GenerateEntityReferenceListGeneric(EntityField ef, Guid revision)

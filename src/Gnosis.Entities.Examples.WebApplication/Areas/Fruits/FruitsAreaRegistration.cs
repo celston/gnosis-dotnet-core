@@ -17,7 +17,7 @@ namespace Gnosis.Entities.Examples.WebApplication.Areas.Fruits
             context.MapRoute(
                 "Fruits_default",
                 "Fruits/{controller}/{action}/{id}",
-                new { action = "Index", id = UrlParameter.Optional }
+                new { action = "Index", controller = "Home", id = UrlParameter.Optional }
             );
         }
     }

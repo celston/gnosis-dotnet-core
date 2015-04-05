@@ -28,6 +28,15 @@ namespace Gnosis.Entities
             public string Type { get; set; }
         }
 
+        protected class EntityPlaceholder
+        {
+            public Guid Id { get; set; }
+            public Guid Revision { get; set; }
+            public string Type { get; set; }
+            public DateTime Created { get; set; }
+            public DateTime Updated { get; set; }
+        }
+
         #endregion
 
         #region Constructors
@@ -46,7 +55,7 @@ namespace Gnosis.Entities
 
         #region Public Methods
 
-        public bool EntityExists(string type, Guid id)
+        public bool EntityExists(Guid id)
         {
             bool result = false;
 
@@ -63,7 +72,6 @@ namespace Gnosis.Entities
 
                     using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
                     {
-                        AddParameter(cmd, "@type", type);
                         AddParameter(cmd, "@id", id);
 
                         int count = (int)cmd.ExecuteScalar();
@@ -104,21 +112,6 @@ namespace Gnosis.Entities
                     trans.Commit();
                 }
             }
-        }
-
-        public T LoadEntity<T>(string type, Guid id, IEnumerable<EntityField> fields) where T : IEntity
-        {
-            T result = Activator.CreateInstance<T>();
-            
-            using (DbConnection conn = GetConnection())
-            {
-                using (DbTransaction trans = conn.BeginTransaction())
-                {
-                    LoadEntityHelper<T>(conn, trans, type, id, fields, result);
-                }
-            }
-
-            return result;
         }
 
         public IEnumerable<string> GetDistinctEntityTypes(IEnumerable<Guid> ids)
@@ -167,7 +160,7 @@ namespace Gnosis.Entities
             throw new NotImplementedException();
         }
 
-        public IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields) where T : IEntity
+        public IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields) where T : IEntity
         {
             throw new NotImplementedException();
         }
@@ -295,6 +288,43 @@ namespace Gnosis.Entities
             }
         }
 
+        protected IEnumerable<EntityPlaceholder> SelectEntities(DbConnection conn, DbTransaction trans, IEnumerable<Guid> ids)
+        {
+            List<EntityPlaceholder> result = new List<EntityPlaceholder>();
+            
+            string sql = new SelectQueryBuilder(prefix)
+                .SetTable("Entity")
+                .AddAllTableColumns("Entity")
+                .AddInWhere("Entity", "id", ids.Count())
+                .AddWhere("Entity.status = 1")
+                .ToString();
+
+            using (DbCommand cmd = CreateTextCommand(conn, trans, sql))
+            {
+                for (int i = 0; i < ids.Count(); i++)
+                {
+                    AddParameter(cmd, string.Format("id{0}", i), ids.ElementAt(i));
+                }
+                
+                using (DbDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        result.Add(new EntityPlaceholder()
+                        {
+                            Id = (Guid)dr["id"],
+                            Revision = (Guid)dr["revision"],
+                            Type = (string)dr["type"],
+                            Created = (DateTime)dr["created"],
+                            Updated = (DateTime)dr["updated"]
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+        
         protected DbCommand SelectEntity(DbConnection conn, DbTransaction trans, Guid id, string type)
         {
             string sql = new SelectQueryBuilder(prefix)

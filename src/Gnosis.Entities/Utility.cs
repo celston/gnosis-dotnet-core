@@ -1,33 +1,34 @@
-﻿using Gnosis.Entities.Attributes;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 using Gnosis.Entities.Exceptions;
+using Gnosis.Entities.Attributes;
 
 namespace Gnosis.Entities
 {
     public static class Utility
     {
-        private static ConcurrentDictionary<Type, Dictionary<string, EntityField>> fields = new ConcurrentDictionary<Type, Dictionary<string, EntityField>>();
+        private static ConcurrentDictionary<Type, IEnumerable<EntityField>> fields = new ConcurrentDictionary<Type, IEnumerable<EntityField>>();
         private static ConcurrentDictionary<Type, IEnumerable<Type>> matchingTypes = new ConcurrentDictionary<Type, IEnumerable<Type>>();
         private static ConcurrentDictionary<string, ConcurrentDictionary<Type, IEnumerable<Type>>> matchingEntityTypes = new ConcurrentDictionary<string, ConcurrentDictionary<Type, IEnumerable<Type>>>();
 
-        public static IDictionary<string, EntityField> GetFields<T>()
+        public static IEnumerable<EntityField> GetFields<T>()
         {
             return GetFields(typeof(T));
         }
 
-        public static IDictionary<string, EntityField> GetFields(Type t)
+        public static IEnumerable<EntityField> GetFields(Type t)
         {
             return fields.GetOrAdd(t, (t2) =>
             {
-                Dictionary<string, EntityField> result = new Dictionary<string, EntityField>();
+                List<EntityField> result = new List<EntityField>();
 
                 foreach (Type iface in t.GetInterfaces())
                 {
@@ -39,8 +40,7 @@ namespace Gnosis.Entities
                             if (efa != null)
                             {
                                 PropertyInfo typeProperty = t.GetProperty(ifaceProperty.Name);
-                                EntityField ef = new EntityField(efa, typeProperty);
-                                result.Add(ef.Name, ef);
+                                result.Add(new EntityField(efa, typeProperty));
                             }
                         }
                     }
@@ -51,8 +51,7 @@ namespace Gnosis.Entities
                     EntityFieldAttribute efa = Reflection.Utility.GetAttribute<EntityFieldAttribute>(typeProperty);
                     if (efa != null)
                     {
-                        EntityField ef = new EntityField(efa, typeProperty);
-                        result.Add(ef.Name, ef);
+                        result.Add(new EntityField(efa, typeProperty));
                     }
                 }
 
@@ -66,10 +65,9 @@ namespace Gnosis.Entities
             
             foreach (Type type in types)
             {
-                IDictionary<string, EntityField> fields = GetFields(type);
-                foreach (KeyValuePair<string, EntityField> kvp in fields)
+                IEnumerable<EntityField> fields = GetFields(type);
+                foreach (EntityField field in fields)
                 {
-                    EntityField field = kvp.Value;
                     if (!result.Any(x => x.Property.DeclaringType.FullName == field.Property.DeclaringType.FullName && x.Name == field.Name))
                     {
                         result.Add(field);
@@ -96,18 +94,18 @@ namespace Gnosis.Entities
 
             Type sourceType = source.GetType();
 
-            IDictionary<string, EntityField> sourceFields = Utility.GetFields(sourceType);
-            IDictionary<string, EntityField> destinationFields = Utility.GetFields(destinationType);
+            IEnumerable<EntityField> sourceFields = Utility.GetFields(sourceType);
+            IEnumerable<EntityField> destinationFields = Utility.GetFields(destinationType);
 
-            foreach (KeyValuePair<string, EntityField> sourceFieldPair in sourceFields)
+            foreach (EntityField sourceField in sourceFields)
             {
-                if (!destinationFields.ContainsKey(sourceFieldPair.Key))
+                EntityField destinationField = destinationFields.Where(x => x.Name == sourceField.Name).FirstOrDefault();
+                
+                if (destinationField == null)
                 {
-                    throw new Exception(string.Format("Destination type {0} does not matching field {1} from source type {2}", destinationType.Name, sourceFieldPair.Key, sourceType.Name));
+                    throw new Exception(string.Format("Destination type {0} does not matching field {1} from source type {2}", destinationType.Name, sourceField.Name, sourceType.Name));
                 }
 
-                EntityField sourceField = sourceFieldPair.Value;
-                EntityField destinationField = destinationFields[sourceFieldPair.Key];
                 result.Add(new EntityFieldValue(sourceField, destinationField.Property, sourceField.Property.GetValue(source)));
             }
 
@@ -140,7 +138,7 @@ namespace Gnosis.Entities
 
                 if (result.Count == 0)
                 {
-                    throw new Exception(string.Format("Found no matching type for \"{0}\"", targetType.FullName));
+                    throw new Exception(string.Format("Found no matching type for \"{0}\". Searched assemblies: {1}", targetType.FullName));
                 }
 
                 IEnumerable<Type> exactMatches = result.Where(x => x.FullName == targetType.FullName);
@@ -257,20 +255,20 @@ namespace Gnosis.Entities
             return result;
         }
 
-        public static IEnumerable<T> GenerateEntityList<T>(IEntityDataManager entityDataManager, IEnumerable<Guid> ids)
+        public static IEnumerable<T> GenerateEntityList<T>(IEntityDataManager entityDataManager, IEnumerable<Guid> ids, IEnumerable<EntityField> fields)
             where T : IEntity
         {
-            throw new NotImplementedException();
+            return entityDataManager.LoadEntities<T>(ids, fields, new EntityField[] {});
         }
 
-        public static object GenerateEntityListGeneric(EntityField ef, IEntityDataManager entityDataManager, IEnumerable<Guid> ids)
+        public static object GenerateEntityListGeneric(EntityField ef, IEntityDataManager entityDataManager, IEnumerable<Guid> ids, IEnumerable<EntityField> fields)
         {
-            return GenerateEntityListGeneric(ef.PropertyFirstGenericTypeArgument, entityDataManager, ids);
+            return GenerateEntityListGeneric(ef.PropertyFirstGenericTypeArgument, entityDataManager, ids, fields);
         }
 
-        public static object GenerateEntityListGeneric(Type genericTypeParameter, IEntityDataManager entityDataManager, IEnumerable<Guid> ids)
+        public static object GenerateEntityListGeneric(Type genericTypeParameter, IEntityDataManager entityDataManager, IEnumerable<Guid> ids, IEnumerable<EntityField> fields)
         {
-            return Gnosis.Reflection.Utility.InvokeGenericStaticMethod(typeof(Utility), "GenerateEntityList", genericTypeParameter, entityDataManager, ids);
+            return Gnosis.Reflection.Utility.InvokeGenericStaticMethod(typeof(Utility), "GenerateEntityList", genericTypeParameter, entityDataManager, ids, fields);
         }
 
         public static object GenerateEntityReferenceListGeneric(EntityField ef, IEntityDataManager entityDataManager, IEnumerable<Guid> ids)

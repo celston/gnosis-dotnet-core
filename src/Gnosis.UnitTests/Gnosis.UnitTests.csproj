@@ -56,6 +56,8 @@
     <Compile Include="Entities\People\MemoryPeopleTests.cs" />
     <Compile Include="Entities\People\PeopleTests.cs" />
     <Compile Include="Entities\People\PrefixedDirectQueryDbPeopleTests.cs" />
+    <Compile Include="Entities\Widgets\MemoryWidgetTests.cs" />
+    <Compile Include="Entities\Widgets\WidgetTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionTests.cs" />
     <Compile Include="TestingTests.cs" />
