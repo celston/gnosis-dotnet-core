@@ -6,6 +6,8 @@ using System.Web.Mvc;
 
 using Gnosis.Entities.Attributes;
 using Gnosis.Entities.Examples.Fruits;
+using Gnosis.Entities.Testing.Data;
+using Gnosis.Entities.Examples.WebApplication.Areas.Fruits.Models;
 
 namespace Gnosis.Entities.Examples.WebApplication.Areas.Fruits.Controllers
 {
@@ -15,6 +17,14 @@ namespace Gnosis.Entities.Examples.WebApplication.Areas.Fruits.Controllers
 
         private Guid BasketId = Guid.Parse("780d93bd-1ce3-4bd1-90db-c1520ff4f95f");
 
+        protected class MemoryFruitDataManager : MemoryEntityDataManager, IFruitDataManager
+        {
+            public Dictionary<string, int> GetEntityTypeCounts()
+            {
+                throw new NotImplementedException();
+            }
+        }
+        
         protected class SessionFruitDataManager : IFruitDataManager
         {
             protected class SessionEntity : IEntityRead
@@ -116,6 +126,24 @@ namespace Gnosis.Entities.Examples.WebApplication.Areas.Fruits.Controllers
             return View();
         }
 
+        [HttpPost]
+        public ActionResult CreateBanana(BananaCreateRequestModel request)
+        {
+            BananaCreateResponseModel response = new BananaCreateResponseModel();
+
+            try
+            {
+                response.Revision = manager.CreateBanana(request);
+                response.Success = true;
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+            }
+            
+            return Json(response);
+        }
+
         public ActionResult List()
         {
             return Json(manager.LoadBasket<Basket>(BasketId));
@@ -125,7 +153,7 @@ namespace Gnosis.Entities.Examples.WebApplication.Areas.Fruits.Controllers
         {
             base.Initialize(requestContext);
 
-            manager = new FruitManager(new SessionFruitDataManager());
+            manager = new FruitManager(new MemoryFruitDataManager());
         }
 
     }

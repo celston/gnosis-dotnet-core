@@ -1,0 +1,6 @@
+﻿<form-group error="showError('@Html.StandardizedNameFor(model => model)')">
+    @Html.ControlLabelFor(model => model)
+    @Html.NgTextInput(model => model)
+
+    <p class="help-block" ng-show="showError('@Html.StandardizedNameFor(model => model)')">@Html.DisplayNameFor(model => model) is required.</p>
+</form-group>

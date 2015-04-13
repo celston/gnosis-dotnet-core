@@ -29,7 +29,6 @@ namespace Gnosis.Entities.Testing.Data
         #region Private Fields
 
         private InitializeEntityDelegate initializeEntityDelegate;
-        private Dictionary<Guid, Dictionary<string, object>> fieldValues = new Dictionary<Guid, Dictionary<string, object>>();
         private Lazy<MethodInfo> generateEntityReferenceListMethod;
 
         #endregion
@@ -48,8 +47,9 @@ namespace Gnosis.Entities.Testing.Data
 
         #region Protected Fields
 
-        protected Dictionary<Guid, MemoryEntity> entities = new Dictionary<Guid, MemoryEntity>();        
-
+        protected Dictionary<Guid, MemoryEntity> entities = new Dictionary<Guid, MemoryEntity>();
+        protected static Dictionary<Guid, Dictionary<string, object>> savedFieldValues = new Dictionary<Guid, Dictionary<string, object>>();
+        
         #endregion
 
         #region Public Methods
@@ -75,10 +75,10 @@ namespace Gnosis.Entities.Testing.Data
 
             entities.Add(id, entity);
 
-            this.fieldValues.Add(revision, new Dictionary<string,object>());
+            MemoryEntityDataManager.savedFieldValues.Add(revision, new Dictionary<string,object>());
             foreach (EntityFieldValue efv in fieldValues)
             {
-                this.fieldValues[revision].Add(efv.Field.Name, efv.Value);
+                MemoryEntityDataManager.savedFieldValues[revision].Add(efv.Field.Name, efv.Value);
             }
         }
 
@@ -90,12 +90,12 @@ namespace Gnosis.Entities.Testing.Data
             }
 
             Guid oldRevision = entities[id].Revision;
-            this.fieldValues.Add(revision, new Dictionary<string, object>());
+            MemoryEntityDataManager.savedFieldValues.Add(revision, new Dictionary<string, object>());
             IEnumerable<string> fieldNames = fieldValues.Select(x => x.Field.Name);
-            IEnumerable<string> valuesToBeCopied = this.fieldValues[oldRevision].Keys.Where(x => !fieldNames.Contains(x));
+            IEnumerable<string> valuesToBeCopied = MemoryEntityDataManager.savedFieldValues[oldRevision].Keys.Where(x => !fieldNames.Contains(x));
             foreach (string valueToBeCopied in valuesToBeCopied)
             {
-                this.fieldValues[revision].Add(valueToBeCopied, this.fieldValues[oldRevision][valueToBeCopied]);
+                MemoryEntityDataManager.savedFieldValues[revision].Add(valueToBeCopied, MemoryEntityDataManager.savedFieldValues[oldRevision][valueToBeCopied]);
             }
 
             entities[id].Revision = revision;
@@ -107,7 +107,7 @@ namespace Gnosis.Entities.Testing.Data
 
             foreach (EntityFieldValue efv in fieldValues)
             {
-                this.fieldValues[revision].Add(efv.Field.Name, efv.Value);
+                MemoryEntityDataManager.savedFieldValues[revision].Add(efv.Field.Name, efv.Value);
             }
         }
         
@@ -173,9 +173,9 @@ namespace Gnosis.Entities.Testing.Data
                 }
                 else
                 {
-                    if (this.fieldValues.ContainsKey(revision) && this.fieldValues[revision].ContainsKey(ef.Name))
+                    if (MemoryEntityDataManager.savedFieldValues.ContainsKey(revision) && MemoryEntityDataManager.savedFieldValues[revision].ContainsKey(ef.Name))
                     {
-                        efv = new EntityFieldValue(ef, ef.Property, this.fieldValues[revision][ef.Name]);
+                        efv = new EntityFieldValue(ef, ef.Property, MemoryEntityDataManager.savedFieldValues[revision][ef.Name]);
                     }
                 }
                 
@@ -187,12 +187,12 @@ namespace Gnosis.Entities.Testing.Data
 
         protected object GenerateEntityListGeneric(EntityField ef, Guid revision, IEnumerable<EntityField> fields)
         {
-            return Utility.GenerateEntityListGeneric(ef, this, (IEnumerable<Guid>)fieldValues[revision][ef.Name], fields);
+            return Utility.GenerateEntityListGeneric(ef, this, (IEnumerable<Guid>)savedFieldValues[revision][ef.Name], fields);
         }
 
         protected object GenerateEntityReferenceListGeneric(EntityField ef, Guid revision)
         {
-            return Utility.GenerateEntityReferenceListGeneric(ef, this, (IEnumerable<Guid>)fieldValues[revision][ef.Name]);
+            return Utility.GenerateEntityReferenceListGeneric(ef, this, (IEnumerable<Guid>)savedFieldValues[revision][ef.Name]);
         }
 
         #endregion

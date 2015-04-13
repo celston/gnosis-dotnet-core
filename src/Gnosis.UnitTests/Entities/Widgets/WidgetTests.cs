@@ -25,6 +25,7 @@ namespace Gnosis.UnitTests.Entities.Widgets
 
             public string S1 { get; set; }
             public IEnumerable<string> S2 { get; set; }
+            public string S3 { get; set; }
         }
 
         public class Widget : Entity, IWidget
@@ -32,6 +33,7 @@ namespace Gnosis.UnitTests.Entities.Widgets
             public string Label { get; protected set; }
             public string S1 { get; protected set; }
             public IEnumerable<string> S2 { get; protected set; }
+            public string S3 { get; protected set; }
         }
 
         public WidgetTests()

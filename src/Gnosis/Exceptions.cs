@@ -4,6 +4,10 @@ namespace Gnosis
 {
     public abstract class GException : Exception
     {
+        public GException()
+        {
+        }   
+        
         public GException(string message, params object[] args)
             : base(string.Format(message, args))
         {

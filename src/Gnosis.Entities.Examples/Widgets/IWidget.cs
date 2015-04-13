@@ -8,11 +8,11 @@ namespace Gnosis.Entities.Examples.Widgets
     [EntityFieldsInterface]
     public interface IWidget
     {
-        string Label { get; }
-
         [EntityField]
         string S1 { get; }
         [EntityField]
         IEnumerable<string> S2 { get; }
+        [EntityField]
+        string S3 { get; }
     }
 }

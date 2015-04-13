@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Reflection", "Gnosis
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Entities.Examples.WebApplication", "Gnosis.Entities.Examples.WebApplication\Gnosis.Entities.Examples.WebApplication.csproj", "{2ECC6270-B7A8-4478-B599-6DF10E6E3239}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Mvc", "Gnosis.Mvc\Gnosis.Mvc.csproj", "{A04E5D9E-EB57-4808-94C0-9CCDE533CA50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Entities.Mvc", "Gnosis.Entities.Mvc\Gnosis.Entities.Mvc.csproj", "{2459C570-4675-4AFA-9A84-DD6D0F7C541A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{2ECC6270-B7A8-4478-B599-6DF10E6E3239}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ECC6270-B7A8-4478-B599-6DF10E6E3239}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ECC6270-B7A8-4478-B599-6DF10E6E3239}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A04E5D9E-EB57-4808-94C0-9CCDE533CA50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A04E5D9E-EB57-4808-94C0-9CCDE533CA50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A04E5D9E-EB57-4808-94C0-9CCDE533CA50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A04E5D9E-EB57-4808-94C0-9CCDE533CA50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

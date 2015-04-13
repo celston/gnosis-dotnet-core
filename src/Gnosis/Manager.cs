@@ -10,25 +10,25 @@ namespace Gnosis
     {
         #region Protected Methods
 
-        protected void Assert<T>(bool condition, T exception)
-            where T : Exception
+        protected void Assert(bool condition, Exception exception)
         {
-            if (!condition)
-            {
-                throw exception;
-            }
+            ValidationUtility.Assert(condition, exception);
         }
 
-        protected void AssertNotNull<T>(object o, T exception)
-            where T : Exception
+        protected void AssertNotNull(object o, Exception exception)
         {
-            Assert(o != null, exception);
+            ValidationUtility.AssertNotNull(o, exception);
         }
 
-        protected void AssertNotIsNullOrWhiteSpace<T>(string s, T exception)
-            where T : Exception
+        protected void AssertNotIsNullOrWhiteSpace(string s, Exception exception)
         {
-            Assert(!string.IsNullOrWhiteSpace(s), exception);
+            ValidationUtility.AssertNotIsNullOrWhiteSpace(s, exception);
+        }
+
+        protected void AssertHasValue<T>(Nullable<T> value, Exception exception)
+            where T : struct
+        {
+            Assert(value.HasValue, exception);
         }
 
         #endregion

@@ -1,0 +1,42 @@
+﻿@model Gnosis.Entities.Examples.WebApplication.Areas.Widgets.Models.WidgetCreateRequestModel
+
+@{
+    MvcHtmlString formName = Html.PrimaryModelName();
+}
+
+<h3>Create</h3>
+
+<form role="form" name="@formName" ng-init="setFormName('@formName')" ng-submit="submit()" novalidate>
+    @Html.EditorFor(model => model.S1, "StandardNgTextInput")
+
+    <form-group ng-form="s2" error="submitted && @(formName).s2.$invalid">
+        @Html.ControlLabelFor(model => model.S2)
+        <div class="form-group row" ng-repeat="val in data.s2 track by $index">
+            <div class="col-md-11">
+                @Html.NgTextInput(model => model.S2, inRepeat: true)
+            </div>
+            <div class="col-md-1"><button type="button" class="btn btn-block btn-danger" ng-click="data.s2.splice($index, 1); blurred.s2.splice($index, 1);"><span class="glyphicon glyphicon-remove"></span></button></div>
+        </div>
+
+        <button type="button" class="btn btn-default" ng-click="data.s2.push(''); blurred.s2.push(false);">Add</button>
+    </form-group>
+
+    <form-group error="showError('s3')">
+        @Html.ControlLabelFor(model => model.S3)
+        <textarea name="@Html.StandardizedNameFor(model => model.S3)" ng-model="data.@Html.StandardizedNameFor(model => model.S3)" ng-blur="blurred.@Html.StandardizedNameFor(model => model.S3) = true" class="form-control" required="required" rows="10"></textarea>
+
+        <p ng-show="showError('s3')" class="help-block">@Html.DisplayNameFor(model => model.S3) is required.</p>
+    </form-group>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<p></p>
+
+<pre>
+submitted = {{submitted}}
+submitting = {{submitting}}
+</pre>
+<pre>data = {{data | json}}</pre>
+<pre>blurred = {{blurred | json}}</pre>
+<pre>@(Html.PrimaryModelName()).s3.$valid = {{@(Html.PrimaryModelName()).s3.$valid}}</pre>

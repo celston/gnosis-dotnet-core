@@ -1,0 +1,10 @@
+﻿@{
+    HtmlString name = Html.NameForModel();
+}
+<form-group error="(submitted || blurs.@name) && @(ViewData["FormName"]).@(name).$invalid">
+    @Html.LabelForModel(new { @class = "control-label" })
+
+    <input type="number" name="@name" ng-model="data.@name" @(ViewData["Min"] != null ? string.Format("min=\"{0}\"", ViewData["Min"]) : "") ng-blur="blurs.@name= true" required class="form-control" />
+
+    <p class="help-block">@(ViewData["FormName"]).@name.$valid = {{@(ViewData["FormName"]).@name.$valid}}, blurs.@name = {{blurs.@name}}</p>
+</form-group>

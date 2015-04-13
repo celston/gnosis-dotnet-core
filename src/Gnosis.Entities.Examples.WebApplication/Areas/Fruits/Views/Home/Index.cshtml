@@ -3,4 +3,22 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Index</h2>
+@section head {
+    <script src="/content/vendor/requirejs/require.js" data-main="/content/js/bundles/fruits/main"></script>
+}
+
+<div class="container">
+    <h2>Fruits</h2>
+
+    <div ng-view></div>
+</div>
+
+<script id="index.html" type="text/ng-template">
+    @Html.Partial("~/Areas/Fruits/Views/Home/_Index.cshtml")
+</script>
+
+<script>
+    define('baseUrl', function () {
+        return '@Url.Content("~")';
+    })
+</script>

@@ -49,6 +49,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -102,26 +103,70 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.30506.0\lib\net40\System.Web.WebPages.Deployment.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.30506.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Areas\Fruits\Controllers\HomeController.cs" />
+    <Compile Include="Areas\Fruits\Controllers\TemplateController.cs" />
     <Compile Include="Areas\Fruits\FruitsAreaRegistration.cs" />
+    <Compile Include="Areas\Fruits\Models\BananaCreateRequestModel.cs" />
+    <Compile Include="Areas\Fruits\Models\BananaCreateResponseModel.cs" />
+    <Compile Include="Areas\Fruits\Models\FruitCreateRequestModel.cs" />
+    <Compile Include="Areas\Login\Controllers\DataController.cs" />
+    <Compile Include="Areas\Login\Controllers\TemplatesController.cs" />
+    <Compile Include="Areas\Login\LoginAreaRegistration.cs" />
+    <Compile Include="Areas\Login\Models\LoginRequestModel.cs" />
+    <Compile Include="Areas\Login\Models\LoginResponseModel.cs" />
+    <Compile Include="Areas\Widgets\Controllers\TemplatesController.cs" />
+    <Compile Include="Areas\Widgets\Models\WidgetCreateRequestModel.cs" />
+    <Compile Include="Areas\Widgets\WidgetsAreaRegistration.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\ExampleEntityCreateRequestModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Content Include="..\bower_components\angular-route\angular-route.min.js">
+      <Link>Content\Vendor\angular-route\angular-route.min.js</Link>
+    </Content>
     <Content Include="..\bower_components\angular\angular.min.js">
       <Link>Content\Vendor\angular\angular.min.js</Link>
     </Content>
+    <Content Include="..\bower_components\bootstrap\dist\css\bootstrap.min.css">
+      <Link>Content\Vendor\bootstrap\css\bootstrap.min.css</Link>
+    </Content>
+    <Content Include="..\bower_components\bootstrap\dist\js\bootstrap.min.js">
+      <Link>Content\Vendor\bootstrap\js\bootstrap.min.js</Link>
+    </Content>
+    <Content Include="..\bower_components\bootstrap\fonts\glyphicons-halflings-regular.svg">
+      <Link>Content\Vendor\bootstrap\fonts\glyphicons-halflings-regular.svg</Link>
+    </Content>
+    <Content Include="..\bower_components\requirejs\require.js">
+      <Link>Content\Vendor\requirejs\require.js</Link>
+    </Content>
+    <Content Include="Content\js\bundles\common\controller\form.js" />
+    <Content Include="Content\js\bundles\common\require.js" />
+    <Content Include="Content\js\bundles\fruits\config.js" />
+    <Content Include="Content\js\bundles\fruits\controllers\bananaCreate.js" />
+    <Content Include="Content\js\bundles\fruits\controllers\index.js" />
+    <Content Include="Content\js\bundles\fruits\main.js" />
+    <Content Include="Content\js\bundles\fruits\app.js" />
+    <Content Include="Content\js\bundles\fruits\services\data.js" />
+    <Content Include="Content\js\bundles\login\app.js" />
+    <Content Include="Content\js\bundles\login\controller\login.js" />
+    <Content Include="Content\js\bundles\login\main.js" />
+    <Content Include="Content\js\bundles\widgets\app.js" />
+    <Content Include="Content\js\bundles\widgets\config.js" />
+    <Content Include="Content\js\bundles\widgets\controller\create.js" />
+    <Content Include="Content\js\bundles\widgets\controller\list.js" />
+    <Content Include="Content\js\bundles\widgets\main.js" />
+    <Content Include="Content\js\modules\gnosis-ng-ui\app.js" />
+    <Content Include="Content\js\modules\gnosis-ng-ui\directives\formGroup.html" />
+    <Content Include="Content\js\modules\gnosis-ng-ui\directives\formGroup.js" />
+    <Content Include="Content\js\modules\gnosis-ng-ui\main.js" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -134,10 +179,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Areas\Fruits\Models\" />
     <Folder Include="Areas\Fruits\Views\Shared\" />
+    <Folder Include="Areas\Login\Views\Shared\" />
+    <Folder Include="Areas\Widgets\Views\Shared\" />
     <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
@@ -162,9 +207,21 @@
       <Project>{773729df-eb98-4d4c-ae1f-25fb82c3a9a2}</Project>
       <Name>Gnosis.Entities.Examples</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Entities.Mvc\Gnosis.Entities.Mvc.csproj">
+      <Project>{2459c570-4675-4afa-9a84-dd6d0f7c541a}</Project>
+      <Name>Gnosis.Entities.Mvc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Entities.Testing\Gnosis.Entities.Testing.csproj">
+      <Project>{8b08846d-a5c1-4383-80d5-d2e249650601}</Project>
+      <Name>Gnosis.Entities.Testing</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Gnosis.Entities\Gnosis.Entities.csproj">
       <Project>{bb9b1872-451b-4cde-9498-cfb8fdbeb2f8}</Project>
       <Name>Gnosis.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Gnosis.Mvc\Gnosis.Mvc.csproj">
+      <Project>{a04e5d9e-eb57-4808-94c0-9ccde533ca50}</Project>
+      <Name>Gnosis.Mvc</Name>
     </ProjectReference>
     <ProjectReference Include="..\Gnosis.Reflection\Gnosis.Reflection.csproj">
       <Project>{13b14358-6d0e-4e40-a8a1-19e997f41bf2}</Project>
@@ -174,6 +231,63 @@
       <Project>{05a6cebb-860c-4ffa-8ae1-99fff5f1792c}</Project>
       <Name>Gnosis</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\bower_components\angular\angular.min.js.map">
+      <Link>Content\vendor\angular\angular.min.js.map</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\bower_components\angular-route\angular-route.min.js.map">
+      <Link>Content\vendor\angular-route\angular-route.min.js.map</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Fruits\Views\Home\_Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Fruits\Views\Template\BananaCreate.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Fruits\Views\Template\EditorTemplates\Number.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Code\Helpers.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Widgets\Views\Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Widgets\Views\Templates\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Widgets\Views\Templates\List.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Widgets\Views\Templates\Create.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\bower_components\bootstrap\fonts\glyphicons-halflings-regular.eot">
+      <Link>Content\Vendor\bootstrap\fonts\glyphicons-halflings-regular.eot</Link>
+    </Content>
+    <Content Include="..\bower_components\bootstrap\fonts\glyphicons-halflings-regular.ttf">
+      <Link>Content\Vendor\bootstrap\fonts\glyphicons-halflings-regular.ttf</Link>
+    </Content>
+    <Content Include="..\bower_components\bootstrap\fonts\glyphicons-halflings-regular.woff">
+      <Link>Content\Vendor\bootstrap\fonts\glyphicons-halflings-regular.woff</Link>
+    </Content>
+    <Content Include="..\bower_components\bootstrap\fonts\glyphicons-halflings-regular.woff2">
+      <Link>Content\Vendor\bootstrap\fonts\glyphicons-halflings-regular.woff2</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\StandardNgTextInput.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Login\Views\Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Login\Views\Templates\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -210,6 +324,6 @@
   <Target Name="AfterBuild">
   </Target> -->
   <Target Name="CopyLinkedContentFiles" BeforeTargets="Build">
-    <Copy SourceFiles="%(Content.Identity)" DestinationFiles="%(Content.Link)" SkipUnchangedFiles='true' OverwriteReadOnlyFiles='true' Condition="'%(Content.Link)' != ''" />
+    <Copy SourceFiles="%(Content.Identity)" DestinationFiles="%(Content.Link)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" Condition="'%(Content.Link)' != ''" />
   </Target>
 </Project>

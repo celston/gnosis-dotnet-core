@@ -1,0 +1,31 @@
+﻿@model Gnosis.Entities.Examples.WebApplication.Areas.Login.Models.LoginRequestModel
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+    <script src="/Content/vendor/requirejs/require.js" data-main="/Content/js/bundles/login/main"></script>
+}
+
+@{
+    MvcHtmlString formName = Html.PrimaryModelName();
+}
+
+<div class="container" ng-controller="LoginController" ng-init="setFormName('@formName')">
+    <h2>Login</h2>
+
+    <form role="form" name="@formName" ng-submit="submit()" novalidate ng-cloak>
+        @Html.EditorFor(model => model.Username, "StandardNgTextInput")
+
+        <form-group>
+            @Html.ControlLabelFor(model => model.Password)
+            <input type="password" name="password" ng-model="data.password" ng-blur="blurred.password = true" class="form-control"/>
+
+            <p ng-show="showError('password')" class="help-block">Password is required.</p>
+        </form-group>
+
+        <button ng-disabled="submitting" type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>

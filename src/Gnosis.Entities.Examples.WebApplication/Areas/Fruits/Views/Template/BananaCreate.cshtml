@@ -1,0 +1,14 @@
+﻿@model Gnosis.Entities.Examples.WebApplication.Areas.Fruits.Models.BananaCreateRequestModel
+
+<h3>Add Banana</h3>
+
+<form role="form" name="@Html.FormName()" ng-submit="submit()" novalidate>
+    <form-group error="(submitted || blurred.price) && @Html.FormName().$invalid">
+        @Html.ControlLabelFor(model => model.Price)
+        @Html.NgNumberInput(model => model.Price, min: 0.02m, placeholder: "Enter a number above 0.01")
+        <p class="help-block">What should we charge for this fruit?</p>
+    </form-group>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a href="#/index" class="btn btn-default">Cancel</a>
+</form>

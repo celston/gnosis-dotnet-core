@@ -28,6 +28,11 @@ namespace Gnosis.UnitTests.Entities.Fruits
 
                 return result;
             }
+
+            public IEnumerable<Fruit> LoadAllFruit()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         protected override IFruitDataManager GetDataManager()

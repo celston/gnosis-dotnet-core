@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";   
+}
+
+@section head {
+    <script src="/content/vendor/requirejs/require.js" data-main="/content/js/bundles/widgets/main"></script>
+}
+
+<div class="container">
+    <h2>Widgets</h2>
+
+    <div ng-view></div>
+</div>
