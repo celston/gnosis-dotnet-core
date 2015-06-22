@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis", "Gnosis\Gnosis.csproj", "{05A6CEBB-860C-4FFA-8AE1-99FFF5F1792C}"
 EndProject
@@ -13,11 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Entities.Examples", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Data", "Gnosis.Data\Gnosis.Data.csproj", "{41FB9458-9A29-4EDD-911B-0FB523F3C116}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Testing", "Gnosis.Testing\Gnosis.Testing.csproj", "{F8065068-FDC6-4315-89FE-32D28B79CF26}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Entities.Testing", "Gnosis.Entities.Testing\Gnosis.Entities.Testing.csproj", "{8B08846D-A5C1-4383-80D5-D2E249650601}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.UnitTests", "Gnosis.UnitTests\Gnosis.UnitTests.csproj", "{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Reflection", "Gnosis.Reflection\Gnosis.Reflection.csproj", "{13B14358-6D0E-4E40-A8A1-19E997F41BF2}"
 EndProject
@@ -26,6 +22,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Mvc", "Gnosis.Mvc\Gnosis.Mvc.csproj", "{A04E5D9E-EB57-4808-94C0-9CCDE533CA50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Entities.Mvc", "Gnosis.Entities.Mvc\Gnosis.Entities.Mvc.csproj", "{2459C570-4675-4AFA-9A84-DD6D0F7C541A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Testing", "Gnosis.Testing\Gnosis.Testing.csproj", "{F8065068-FDC6-4315-89FE-32D28B79CF26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.UnitTests", "Gnosis.UnitTests\Gnosis.UnitTests.csproj", "{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gnosis.Entities.MongoDb", "Gnosis.Entities.MongoDb\Gnosis.Entities.MongoDb.csproj", "{E953B494-B3B7-474F-AE54-69DF1A10DE6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,18 +55,10 @@ Global
 		{41FB9458-9A29-4EDD-911B-0FB523F3C116}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41FB9458-9A29-4EDD-911B-0FB523F3C116}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41FB9458-9A29-4EDD-911B-0FB523F3C116}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8B08846D-A5C1-4383-80D5-D2E249650601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8B08846D-A5C1-4383-80D5-D2E249650601}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B08846D-A5C1-4383-80D5-D2E249650601}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B08846D-A5C1-4383-80D5-D2E249650601}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{13B14358-6D0E-4E40-A8A1-19E997F41BF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{13B14358-6D0E-4E40-A8A1-19E997F41BF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13B14358-6D0E-4E40-A8A1-19E997F41BF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,6 +75,18 @@ Global
 		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2459C570-4675-4AFA-9A84-DD6D0F7C541A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8065068-FDC6-4315-89FE-32D28B79CF26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E50EA1A8-5F58-41BA-9440-FBDDE08608F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E953B494-B3B7-474F-AE54-69DF1A10DE6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E953B494-B3B7-474F-AE54-69DF1A10DE6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E953B494-B3B7-474F-AE54-69DF1A10DE6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E953B494-B3B7-474F-AE54-69DF1A10DE6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

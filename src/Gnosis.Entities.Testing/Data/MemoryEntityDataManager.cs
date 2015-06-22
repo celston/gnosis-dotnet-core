@@ -59,6 +59,14 @@ namespace Gnosis.Entities.Testing.Data
             return entities.ContainsKey(id);
         }
 
+        public async Task<bool> EntityExistsAsync(Guid id)
+        {
+            return await Task.Run(() =>
+            {
+                return EntityExists(id);
+            });
+        }
+
         public void CreateEntity(string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected, IEnumerable<EntityFieldValue> fieldValues)
         {
             MemoryEntity entity = new MemoryEntity()
@@ -196,5 +204,17 @@ namespace Gnosis.Entities.Testing.Data
         }
 
         #endregion
+
+
+        public Task CreateEntityAsync(string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected, IEnumerable<EntityFieldValue> fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task<IEnumerable<T>> LoadEntitiesAsync<T>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields) where T : IEntity
+        {
+            throw new NotImplementedException();
+        }
     }
 }

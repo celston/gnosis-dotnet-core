@@ -83,6 +83,11 @@ namespace Gnosis.Entities
             return result;
         }
 
+        public async Task<bool> EntityExistsAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public void CreateEntity(string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected, IEnumerable<EntityFieldValue> fieldValues)
         {
             using (DbConnection conn = GetConnection())
@@ -672,5 +677,17 @@ namespace Gnosis.Entities
         }
 
         #endregion
+
+
+        public Task CreateEntityAsync(string type, Guid id, Guid revision, Guid? author, string label, DateTime created, bool isProtected, IEnumerable<EntityFieldValue> fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task<IEnumerable<T>> LoadEntitiesAsync<T>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields) where T : IEntity
+        {
+            throw new NotImplementedException();
+        }
     }
 }

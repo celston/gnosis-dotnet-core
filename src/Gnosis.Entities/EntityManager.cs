@@ -38,6 +38,22 @@ namespace Gnosis.Entities
             return entityDataManager.EntityExists(id);
         }
 
+        protected async Task<Guid> CreateEntityAsync(IEntityCreateRequest request, string type)
+        {
+            return await CreateEntityAsyc(request, type, "", false);
+        }
+
+        protected async Task<Guid> CreateEntityAsyc(IEntityCreateRequest request, string type, string label, bool isProtected)
+        {
+            AssertValidEntityType(type);
+            await AssertEntityDoesntExistAsync(request.Id);
+
+            Guid revision = Guid.NewGuid();
+            await entityDataManager.CreateEntityAsync(type, request.Id, revision, request.Author, label, request.Created, isProtected, Utility.GetFieldValues(request, request.GetType()));
+
+            return revision;
+        }
+
         protected Guid CreateEntity(IEntityCreateRequest request, string type)
         {
             return CreateEntity(request, type, "", false);
@@ -72,9 +88,22 @@ namespace Gnosis.Entities
             }
         }
 
+        protected async Task AssertEntitiesExistAsync(IEnumerable<Guid> ids)
+        {
+            foreach (Guid id in ids)
+            {
+                await AssertEntityExistsAsync(id);
+            }
+        }
+
         protected void AssertEntityExists(Guid id)
         {
             Assert(entityDataManager.EntityExists(id), new EntityNotFoundException(id));
+        }
+
+        protected async Task AssertEntityExistsAsync(Guid id)
+        {
+            Assert(await entityDataManager.EntityExistsAsync(id), new EntityNotFoundException(id));
         }
 
         protected void AssertValidEntityType(string type)
@@ -98,9 +127,22 @@ namespace Gnosis.Entities
             return revision;
         }
 
+        protected async Task AssertEntityDoesntExistAsync(Guid id)
+        {
+            bool result = await entityDataManager.EntityExistsAsync(id);
+            Assert(!result, new EntityNotFoundException(id));
+        }
+        
         protected void AssertEntityDoesntExist(Guid id)
         {
             Assert(!entityDataManager.EntityExists(id), new EntityNotFoundException(id));
+        }
+
+        protected Task<IEnumerable<T>> LoadEntitiesAsync<T>(IEnumerable<Guid> ids)
+            where T : IEntity
+        {
+            IEnumerable<EntityField> fields = Utility.GetFields(typeof(T));
+            return LoadEntitiesHelperAsync<T>(ids, fields, fields);
         }
 
         protected IEnumerable<T> LoadEntities<T>(IEnumerable<Guid> ids)
@@ -145,6 +187,14 @@ namespace Gnosis.Entities
             IEnumerable<EntityField> fields = Utility.GetFields(types);
 
             return LoadEntitiesHelper<T>(new Guid[] { id }, fields, fields).FirstOrDefault();
+        }
+
+        private async Task<IEnumerable<TResult>> LoadEntitiesHelperAsync<TResult>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields)
+            where TResult : IEntity
+        {
+            await AssertEntitiesExistAsync(ids);
+
+            return await entityDataManager.LoadEntitiesAsync<TResult>(ids, fields, nestedFields);
         }
 
         private IEnumerable<TResult> LoadEntitiesHelper<TResult>(IEnumerable<Guid> ids, IEnumerable<EntityField> fields, IEnumerable<EntityField> nestedFields)

@@ -23,9 +23,7 @@ namespace Gnosis.Entities.Examples.WebApplication.Areas.Login.Controllers
         {
             public Guid? FindUserByCredentials(IUserCredentials credentials)
             {
-                IEnumerable<Guid> revisions = savedFieldValues
-                    .Where(x => x.Value.ContainsKey("Username") && (string)x.Value["Username"] == credentials.Username && x.Value.ContainsKey("Password") && (string)x.Value["Password"] == credentials.Password)
-                    .Select(x => x.Key);
+                throw new NotImplementedException();
             }
         }
         

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -39,6 +40,33 @@ namespace Gnosis.UnitTests.Entities.Widgets
         public WidgetTests()
         {
             manager = new WidgetManager(GetDataManager());
+        }
+
+        [Test]
+        public async Task CreateAndLoadAsync([Values(1, 10, 100)]int n)
+        {
+            List<WidgetCreateRequest> requests = new List<WidgetCreateRequest>();
+
+            for (int i = 0; i < n; i++)
+            {
+                WidgetCreateRequest request = new WidgetCreateRequest()
+                {
+                    S1 = Gnosis.Testing.Utility.GetRandomPhrase()
+                };
+                Debug.Print(request.S1);
+
+                requests.Add(request);
+                await manager.CreateWidgetAsync(request);
+            }
+
+            List<Widget> widgets = (await manager.LoadWidgetsAsync<Widget>(requests.Select(x => x.Id))).ToList();
+            Assert.AreEqual(n, widgets.Count());
+
+            for (int i = 0; i < n; i++)
+            {
+                Assert.AreEqual(requests[i].Id, widgets[i].Id);
+                Assert.AreEqual(requests[i].S1, widgets[i].S1);
+            }
         }
 
         [Test]

@@ -325,6 +325,10 @@ namespace Gnosis.Data
         
         #region Constructors
 
+        public DbDataManager(string name) : this(ConfigurationManager.ConnectionStrings[name])
+        {
+        }
+
         public DbDataManager(ConnectionStringSettings connectionStringSettings)
         {
             this.connectionStringSettings = connectionStringSettings;

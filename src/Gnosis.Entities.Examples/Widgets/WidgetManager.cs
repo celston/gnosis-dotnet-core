@@ -12,6 +12,11 @@ namespace Gnosis.Entities.Examples.Widgets
             : base(dataManager)
         {
         }
+
+        public async Task<Guid> CreateWidgetAsync(IWidgetCreateRequest request)
+        {
+            return await CreateEntityAsync(request, "Widget");
+        }
         
         public Guid CreateWidget(IWidgetCreateRequest request)
         {
@@ -22,6 +27,12 @@ namespace Gnosis.Entities.Examples.Widgets
             where T : IEntity, IWidget
         {
             return LoadEntities<T>(ids, typeof(T));
+        }
+
+        public async Task<IEnumerable<T>> LoadWidgetsAsync<T>(IEnumerable<Guid> ids)
+            where T : IEntity, IWidget
+        {
+            return await LoadEntitiesAsync<T>(ids);
         }
     }
 }
